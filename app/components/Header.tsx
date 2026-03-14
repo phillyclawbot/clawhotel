@@ -42,7 +42,8 @@ export default function Header({
           <span className="sm:hidden">{onlineCount}</span>
         </span>
         <ViewerLogin onSessionChange={(s) => onViewerSession?.(s)} />
-        <div className="hidden sm:flex gap-4 text-xs text-white/50">
+        <div className="hidden md:flex gap-4 text-xs text-white/50">
+          <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
           <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
         </div>
