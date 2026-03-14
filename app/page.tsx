@@ -40,7 +40,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedBot, setSelectedBot] = useState<BotData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [focusRoom, setFocusRoom] = useState<string | null>(null);
+  const [viewRoom, setViewRoom] = useState<string>("lobby");
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
   const handleMessagesUpdate = useCallback((m: Message[]) => setMessages(m), []);
@@ -91,8 +91,8 @@ export default function Home() {
               currentBotId={mainBot?.id || null}
               currentRoomId={currentRoomId}
               onRoomChange={() => setSidebarOpen(false)}
-              onFocusRoom={(roomId) => { setFocusRoom(roomId); setSidebarOpen(false); }}
-              focusRoom={focusRoom}
+              onViewRoom={(roomId) => { setViewRoom(roomId); setSidebarOpen(false); }}
+              viewRoom={viewRoom}
             />
           </div>
         </>
@@ -103,7 +103,7 @@ export default function Home() {
             onBotsUpdate={handleBotsUpdate}
             onMessagesUpdate={handleMessagesUpdate}
             onBotClick={handleBotClick}
-            focusRoom={focusRoom}
+            viewRoom={viewRoom}
           />
           <ChatLog messages={messages} />
         </div>

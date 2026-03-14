@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import type { FurnitureItem } from "@/lib/rooms";
 
 interface BotItem {
   item_id: string;
@@ -53,54 +52,32 @@ function tileToScreen(x: number, y: number) {
   return { sx: (x - y) * (TILE_W / 2), sy: (x + y) * (TILE_H / 2) };
 }
 
-// Room zone definitions (mirrored from lib/rooms.ts to avoid import issues)
-const ROOM_ZONES: Record<string, { minX: number; maxX: number; minY: number; maxY: number }> = {
-  kitchen: { minX: 0, maxX: 4, minY: 0, maxY: 4 },
-  dancefloor: { minX: 4, maxX: 8, minY: 3, maxY: 7 },
-  store: { minX: 7, maxX: 11, minY: 0, maxY: 5 },
-};
-
-const ROOM_COLORS: Record<string, { a: number; b: number }> = {
-  kitchen: { a: 0xc4783a, b: 0xb06830 },
-  dancefloor: { a: 0x2a1a3e, b: 0x1e1230 },
-  store: { a: 0xaaaaaa, b: 0x999999 },
-};
-
 const ROOM_EMOJI: Record<string, string> = {
   kitchen: "🍳",
   dancefloor: "🎧",
   store: "🏪",
 };
 
-function tileInZone(gx: number, gy: number, zone: { minX: number; maxX: number; minY: number; maxY: number }) {
-  return gx >= zone.minX && gx <= zone.maxX && gy >= zone.minY && gy <= zone.maxY;
-}
-
-// Room zone center tiles
-const ROOM_CENTERS: Record<string, { x: number; y: number }> = {
-  lobby:      { x: 5.5, y: 5 },
-  kitchen:    { x: 2,   y: 2 },
-  dancefloor: { x: 6,   y: 5 },
-  store:      { x: 9,   y: 2.5 },
-};
-
 export default function World({
   onBotsUpdate,
   onMessagesUpdate,
   onBotClick,
-  focusRoom,
+  viewRoom,
 }: {
   onBotsUpdate: (bots: BotData[]) => void;
   onMessagesUpdate: (msgs: Message[]) => void;
   onBotClick: (bot: BotData) => void;
-  focusRoom?: string | null;
+  viewRoom: string;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const localBotsRef = useRef<Map<string, LocalBot>>(new Map());
-  const furnitureRef = useRef<FurnitureItem[]>([]);
   const appRef = useRef<unknown>(null);
-  const worldContainerRef = useRef<{ x: number; y: number } | null>(null);
+  const worldContainerRef = useRef<unknown>(null);
+  const currentRoomRef = useRef<string>(viewRoom);
   const [ready, setReady] = useState(false);
+
+  // Keep ref in sync
+  currentRoomRef.current = viewRoom;
 
   const poll = useCallback(async () => {
     try {
@@ -108,7 +85,6 @@ export default function World({
       const data = await res.json();
       const bots: BotData[] = data.bots;
       const messages: Message[] = data.messages;
-      if (data.furniture) furnitureRef.current = data.furniture;
 
       onBotsUpdate(bots);
       onMessagesUpdate(messages);
@@ -148,9 +124,8 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
-      const { drawHabboBot, drawFurniture, drawTile, drawWalls, drawRoomTile, drawChefHat } = await import("@/lib/pixel");
-      const { lobbyFurniture, furnitureEmoji } = await import("@/lib/rooms");
-      furnitureRef.current = lobbyFurniture;
+      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat } = await import("@/lib/pixel");
+      const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
 
       if (destroyed || !canvasRef.current) return;
 
@@ -181,48 +156,20 @@ export default function World({
       }
       updateWorldPosition();
 
-      // ---- WALLS ----
+      // Scene layers
       const wallsGraphics = new PIXI.Graphics();
       world.addChild(wallsGraphics);
-      drawWalls(wallsGraphics, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen);
 
-      // ---- FLOOR ----
-      const floor = new PIXI.Graphics();
-      world.addChild(floor);
+      const floorGraphics = new PIXI.Graphics();
+      world.addChild(floorGraphics);
 
-      function drawFloor() {
-        floor.clear();
-        for (let gx = 0; gx < GRID_W; gx++) {
-          for (let gy = 0; gy < GRID_H; gy++) {
-            const { sx, sy } = tileToScreen(gx, gy);
-
-            // Check if tile is in a room zone
-            let drawnRoom = false;
-            for (const [roomId, zone] of Object.entries(ROOM_ZONES)) {
-              if (tileInZone(gx, gy, zone)) {
-                const colors = ROOM_COLORS[roomId];
-                drawRoomTile(floor, sx, sy, TILE_W, TILE_H, colors.a, colors.b, gx, gy);
-                drawnRoom = true;
-                break;
-              }
-            }
-            if (!drawnRoom) {
-              drawTile(floor, sx, sy, TILE_W, TILE_H, gx, gy);
-            }
-          }
-        }
-      }
-      drawFloor();
-
-      // ---- FURNITURE LAYER ----
       const furnitureLayer = new PIXI.Container();
       world.addChild(furnitureLayer);
 
-      // ---- BOT LAYER ----
       const botLayer = new PIXI.Container();
       world.addChild(botLayer);
 
-      // ---- TOOLTIP ----
+      // Tooltip
       const tooltipContainer = new PIXI.Container();
       tooltipContainer.visible = false;
       app.stage.addChild(tooltipContainer);
@@ -232,28 +179,67 @@ export default function World({
       const tooltipText = new PIXI.Text({ text: "", style: { fontSize: 11, fill: 0xffffff, fontFamily: "monospace" } });
       tooltipContainer.addChild(tooltipText);
 
+      let lastDrawnRoom = "";
+
+      function drawScene(roomId: string) {
+        const room = ROOMS[roomId] || ROOMS.lobby;
+
+        wallsGraphics.clear();
+        drawRoomWalls(wallsGraphics, room, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen);
+
+        lastDrawnRoom = roomId;
+      }
+
+      // Initial draw
+      drawScene(currentRoomRef.current);
+
       let frameCount = 0;
+      let fadeAlpha = 1;
+      let fadingTo: string | null = null;
 
       app.ticker.add(() => {
         frameCount++;
         updateWorldPosition();
 
-        // ---- Redraw dancefloor tiles (for disco animation) ----
-        if (frameCount % 10 === 0) {
-          drawFloor();
+        // Handle room transition fade
+        const targetRoom = currentRoomRef.current;
+        if (targetRoom !== lastDrawnRoom && !fadingTo) {
+          fadingTo = targetRoom;
+          fadeAlpha = 1;
         }
 
-        // ---- Draw furniture ----
-        furnitureLayer.removeChildren();
-        const furnitureGraphics = new PIXI.Graphics();
-        furnitureLayer.addChild(furnitureGraphics);
+        if (fadingTo) {
+          fadeAlpha -= 0.05;
+          world.alpha = Math.max(0, fadeAlpha);
+          if (fadeAlpha <= 0) {
+            drawScene(fadingTo);
+            fadingTo = null;
+            fadeAlpha = 0;
+          }
+        } else if (world.alpha < 1) {
+          fadeAlpha = Math.min(1, fadeAlpha + 0.05);
+          world.alpha = fadeAlpha;
+        }
 
-        const furniture = furnitureRef.current;
+        // Redraw floor every frame for disco, every 10 frames otherwise
+        const activeRoom = ROOMS[lastDrawnRoom] || ROOMS.lobby;
+        const needsFloorRedraw = activeRoom.floorStyle === "disco" || frameCount % 10 === 0;
+        if (needsFloorRedraw) {
+          floorGraphics.clear();
+          drawRoomFloor(floorGraphics, activeRoom, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen, frameCount);
+        }
+
+        // Draw furniture
+        furnitureLayer.removeChildren();
+        const fGfx = new PIXI.Graphics();
+        furnitureLayer.addChild(fGfx);
+
+        const furniture = activeRoom.furniture;
         const sortedFurniture = [...furniture].sort((a, b) => (a.tileX + a.tileY) - (b.tileX + b.tileY));
 
         for (const item of sortedFurniture) {
           const { sx, sy } = tileToScreen(item.tileX, item.tileY);
-          drawFurniture(furnitureGraphics, item.type, sx, sy + TILE_H / 2, frameCount);
+          drawFurniture(fGfx, item.type, sx, sy + TILE_H / 2, frameCount);
 
           // Furniture hit area for tooltip
           const hitArea = new PIXI.Container();
@@ -283,12 +269,18 @@ export default function World({
           furnitureLayer.addChild(hitArea);
         }
 
-        // ---- Draw bots ----
+        // Draw bots — filtered to current room
         botLayer.removeChildren();
 
         const map = localBotsRef.current;
         const entries = Array.from(map.values());
+        const visibleRoomId = lastDrawnRoom;
+
         for (const lb of entries) {
+          // Filter: only show bots in the viewed room
+          const botRoom = lb.data.room_id || "lobby";
+          if (botRoom !== visibleRoomId) continue;
+
           lb.x += (lb.targetX - lb.x) * 0.08;
           lb.y += (lb.targetY - lb.y) * 0.08;
 
@@ -304,11 +296,9 @@ export default function World({
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));
 
-          // Draw the pixel art bot
           const botGraphics = new PIXI.Graphics();
           drawHabboBot(botGraphics, lb.data, progress, 0, 0);
 
-          // Chef hat if bot has chefs_hat item
           const hasChefHat = lb.data.items?.some((i) => i.item_id === "chefs_hat");
           if (hasChefHat) {
             drawChefHat(botGraphics, 0, 0, isMoving ? Math.sin(progress * Math.PI * 2) * 1.5 : 0);
@@ -316,14 +306,14 @@ export default function World({
 
           container.addChild(botGraphics);
 
-          // Emoji badge (top-right of head)
+          // Emoji badge
           const emojiBadge = new PIXI.Text({ text: lb.data.emoji, style: { fontSize: 12 } });
           emojiBadge.anchor.set(0.5);
           emojiBadge.x = 14;
           emojiBadge.y = hasChefHat ? -34 : -22;
           container.addChild(emojiBadge);
 
-          // Name label with room emoji badge
+          // Name label
           const accentNum = parseInt(lb.data.accent_color.replace("#", ""), 16);
           const roomEmoji = lb.data.room_id ? (ROOM_EMOJI[lb.data.room_id] || "") : "";
           const displayName = roomEmoji ? `${lb.data.name} ${roomEmoji}` : lb.data.name;
@@ -345,7 +335,7 @@ export default function World({
           nameLabel.y = 30;
           container.addChild(nameLabel);
 
-          // Status text (above head)
+          // Status text
           if (lb.data.status) {
             const statusText = new PIXI.Text({
               text: lb.data.status,
@@ -377,7 +367,6 @@ export default function World({
               bubble.roundRect(-bw / 2, -bh + bubbleY - 2, bw, bh, 6);
               bubble.fill({ color: 0xffffff, alpha });
               bubble.stroke({ width: 1.5, color: accentNum, alpha });
-              // Bubble tail
               bubble.poly([
                 { x: -3, y: bubbleY - 2 },
                 { x: 3, y: bubbleY - 2 },
@@ -413,33 +402,6 @@ export default function World({
       }
     };
   }, [poll, onBotClick]);
-
-  // Pan camera when focusRoom changes
-  useEffect(() => {
-    const app = appRef.current as { screen: { width: number; height: number } } | null;
-    const world = worldContainerRef.current as { x: number; y: number } | null;
-    if (!app || !world) return;
-
-    const center = ROOM_CENTERS[focusRoom || "lobby"] || ROOM_CENTERS.lobby;
-    const { sx, sy } = tileToScreen(center.x, center.y);
-    const targetX = app.screen.width / 2 - sx;
-    const targetY = app.screen.height / 2 - sy - 40;
-
-    // Smooth lerp animation
-    let frame: number;
-    const animate = () => {
-      world.x += (targetX - world.x) * 0.12;
-      world.y += (targetY - world.y) * 0.12;
-      if (Math.abs(world.x - targetX) > 0.5 || Math.abs(world.y - targetY) > 0.5) {
-        frame = requestAnimationFrame(animate);
-      } else {
-        world.x = targetX;
-        world.y = targetY;
-      }
-    };
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
-  }, [focusRoom]);
 
   return (
     <div ref={canvasRef} className="flex-1 w-full bg-[#0d0d1a] relative">
