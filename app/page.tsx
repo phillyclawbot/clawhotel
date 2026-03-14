@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import World from "./components/World";
 import BotPanel from "./components/BotPanel";
 import RoomPanel from "./components/RoomPanel";
+import Minimap from "./components/Minimap";
 
 interface BotData {
   id: string;
@@ -37,6 +38,7 @@ export default function Home() {
   const [viewRoom, setViewRoom] = useState<string>("lobby");
   const [viewerSession, setViewerSession] = useState<ViewerSession | null>(null);
   const [visitorCount, setVisitorCount] = useState(0);
+  const [minimapOpen, setMinimapOpen] = useState(false);
 
   useEffect(() => {
     fetch("/api/visitors").then((r) => r.json()).then((d) => setVisitorCount(d.today || 0)).catch(() => {});
@@ -99,6 +101,23 @@ export default function Home() {
             viewRoom={viewRoom}
             highlightBotId={viewerSession?.linked_bot || null}
           />
+
+          {/* Minimap button */}
+          <button
+            onClick={() => setMinimapOpen((o) => !o)}
+            className="absolute bottom-4 right-4 z-30 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full text-sm transition-colors shadow-lg"
+          >
+            🗺️ Map
+          </button>
+
+          {minimapOpen && (
+            <Minimap
+              bots={bots}
+              viewRoom={viewRoom}
+              onSelectRoom={(roomId) => setViewRoom(roomId)}
+              onClose={() => setMinimapOpen(false)}
+            />
+          )}
 
           {/* Viewer overlay — shows when logged in */}
           {viewerSession && (
