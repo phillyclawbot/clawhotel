@@ -10,10 +10,12 @@ interface ViewerSession {
 
 export default function Header({
   onlineCount,
+  visitorCount,
   onMenuToggle,
   onViewerSession,
 }: {
   onlineCount: number;
+  visitorCount?: number;
   onMenuToggle?: () => void;
   onViewerSession?: (session: ViewerSession | null) => void;
 }) {
@@ -41,6 +43,9 @@ export default function Header({
           <span className="hidden sm:inline">{onlineCount} online</span>
           <span className="sm:hidden">{onlineCount}</span>
         </span>
+        {visitorCount !== undefined && visitorCount > 0 && (
+          <span className="text-white/40 text-xs hidden sm:inline">👁 {visitorCount}</span>
+        )}
         <ViewerLogin onSessionChange={(s) => onViewerSession?.(s)} />
         <div className="hidden md:flex gap-4 text-xs text-white/50">
           <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>

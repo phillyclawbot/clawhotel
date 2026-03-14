@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Header from "./components/Header";
 import World from "./components/World";
 import BotPanel from "./components/BotPanel";
@@ -36,6 +36,11 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewRoom, setViewRoom] = useState<string>("lobby");
   const [viewerSession, setViewerSession] = useState<ViewerSession | null>(null);
+  const [visitorCount, setVisitorCount] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/visitors").then((r) => r.json()).then((d) => setVisitorCount(d.today || 0)).catch(() => {});
+  }, []);
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
   const handleMessagesUpdate = useCallback(() => {}, []);
@@ -48,6 +53,7 @@ export default function Home() {
     <div className="h-screen flex flex-col overflow-hidden">
       <Header
         onlineCount={bots.length}
+        visitorCount={visitorCount}
         onMenuToggle={() => setSidebarOpen((o) => !o)}
         onViewerSession={setViewerSession}
       />

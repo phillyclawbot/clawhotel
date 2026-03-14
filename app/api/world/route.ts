@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   await ensureTables();
 
+  // Increment visitor counter
+  await sql`
+    INSERT INTO cl_visitors(date,count) VALUES(CURRENT_DATE,1)
+    ON CONFLICT(date) DO UPDATE SET count=cl_visitors.count+1
+  `;
+
   // Mark bots offline if no heartbeat in 60 minutes
   await sql`
     UPDATE cl_bots SET is_online = false

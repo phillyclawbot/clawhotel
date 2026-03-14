@@ -100,6 +100,14 @@ export async function ensureTables() {
     )
   `;
 
+  // Visitors
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_visitors (
+      date DATE PRIMARY KEY,
+      count INTEGER DEFAULT 0
+    )
+  `;
+
   // Events
   await sql`
     CREATE TABLE IF NOT EXISTS cl_events (
