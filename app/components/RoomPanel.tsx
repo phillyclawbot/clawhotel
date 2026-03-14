@@ -26,10 +26,14 @@ export default function RoomPanel({
   currentBotId,
   currentRoomId,
   onRoomChange,
+  onFocusRoom,
+  focusRoom,
 }: {
   currentBotId: string | null;
   currentRoomId: string | null;
   onRoomChange: () => void;
+  onFocusRoom?: (roomId: string) => void;
+  focusRoom?: string | null;
 }) {
   const [rooms, setRooms] = useState<Room[]>([]);
 
@@ -58,16 +62,30 @@ export default function RoomPanel({
   return (
     <div className="w-full flex flex-col gap-2 p-3">
       <h3 className="text-white/60 text-xs font-mono uppercase tracking-wider mb-1">Rooms</h3>
+      {/* Lobby button */}
+      <button
+        onClick={() => onFocusRoom?.("lobby")}
+        className="w-full text-left text-xs py-2 px-3 rounded transition-all flex items-center gap-2"
+        style={{
+          backgroundColor: (!focusRoom || focusRoom === "lobby") ? "rgba(255,255,255,0.08)" : "transparent",
+          color: (!focusRoom || focusRoom === "lobby") ? "#fff" : "rgba(255,255,255,0.4)",
+        }}
+      >
+        <span>🏨</span><span className="font-bold">The Lobby</span>
+      </button>
+
       {rooms.map((room) => {
         const isInThisRoom = currentRoomId === room.id;
+        const isFocused = focusRoom === room.id;
         return (
           <div
             key={room.id}
-            className="rounded-lg p-3 border transition-all"
+            className="rounded-lg border transition-all cursor-pointer"
+            onClick={() => onFocusRoom?.(room.id)}
             style={{
-              borderColor: isInThisRoom ? room.color : "rgba(255,255,255,0.08)",
-              backgroundColor: isInThisRoom ? room.color + "15" : "rgba(255,255,255,0.03)",
-              boxShadow: isInThisRoom ? `0 0 12px ${room.color}40` : "none",
+              borderColor: isFocused ? room.color : isInThisRoom ? room.color + "80" : "rgba(255,255,255,0.08)",
+              backgroundColor: isFocused ? room.color + "20" : isInThisRoom ? room.color + "10" : "rgba(255,255,255,0.03)",
+              boxShadow: isFocused ? `0 0 16px ${room.color}50` : isInThisRoom ? `0 0 8px ${room.color}30` : "none",
             }}
           >
             <div className="flex items-center gap-2 mb-1">

@@ -76,19 +76,30 @@ function tileInZone(gx: number, gy: number, zone: { minX: number; maxX: number; 
   return gx >= zone.minX && gx <= zone.maxX && gy >= zone.minY && gy <= zone.maxY;
 }
 
+// Room zone center tiles
+const ROOM_CENTERS: Record<string, { x: number; y: number }> = {
+  lobby:      { x: 5.5, y: 5 },
+  kitchen:    { x: 2,   y: 2 },
+  dancefloor: { x: 6,   y: 5 },
+  store:      { x: 9,   y: 2.5 },
+};
+
 export default function World({
   onBotsUpdate,
   onMessagesUpdate,
   onBotClick,
+  focusRoom,
 }: {
   onBotsUpdate: (bots: BotData[]) => void;
   onMessagesUpdate: (msgs: Message[]) => void;
   onBotClick: (bot: BotData) => void;
+  focusRoom?: string | null;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const localBotsRef = useRef<Map<string, LocalBot>>(new Map());
   const furnitureRef = useRef<FurnitureItem[]>([]);
   const appRef = useRef<unknown>(null);
+  const worldContainerRef = useRef<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
 
   const poll = useCallback(async () => {
@@ -161,6 +172,7 @@ export default function World({
       appRef.current = app;
 
       const world = new PIXI.Container();
+      worldContainerRef.current = world;
       app.stage.addChild(world);
 
       function updateWorldPosition() {
@@ -401,6 +413,33 @@ export default function World({
       }
     };
   }, [poll, onBotClick]);
+
+  // Pan camera when focusRoom changes
+  useEffect(() => {
+    const app = appRef.current as { screen: { width: number; height: number } } | null;
+    const world = worldContainerRef.current as { x: number; y: number } | null;
+    if (!app || !world) return;
+
+    const center = ROOM_CENTERS[focusRoom || "lobby"] || ROOM_CENTERS.lobby;
+    const { sx, sy } = tileToScreen(center.x, center.y);
+    const targetX = app.screen.width / 2 - sx;
+    const targetY = app.screen.height / 2 - sy - 40;
+
+    // Smooth lerp animation
+    let frame: number;
+    const animate = () => {
+      world.x += (targetX - world.x) * 0.12;
+      world.y += (targetY - world.y) * 0.12;
+      if (Math.abs(world.x - targetX) > 0.5 || Math.abs(world.y - targetY) > 0.5) {
+        frame = requestAnimationFrame(animate);
+      } else {
+        world.x = targetX;
+        world.y = targetY;
+      }
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [focusRoom]);
 
   return (
     <div ref={canvasRef} className="flex-1 w-full bg-[#0d0d1a] relative">
