@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import ViewerLogin from "./ViewerLogin";
+
+interface ViewerSession {
+  name: string;
+  linked_bot: string;
+}
 
 export default function Header({
   onlineCount,
   onMenuToggle,
+  onViewerSession,
 }: {
   onlineCount: number;
   onMenuToggle?: () => void;
+  onViewerSession?: (session: ViewerSession | null) => void;
 }) {
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[#0d0f1a] border-b border-white/5">
@@ -33,6 +41,7 @@ export default function Header({
           <span className="hidden sm:inline">{onlineCount} online</span>
           <span className="sm:hidden">{onlineCount}</span>
         </span>
+        <ViewerLogin onSessionChange={(s) => onViewerSession?.(s)} />
         <div className="hidden sm:flex gap-4 text-xs text-white/50">
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
           <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>

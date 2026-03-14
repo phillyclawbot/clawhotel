@@ -63,11 +63,13 @@ export default function World({
   onMessagesUpdate,
   onBotClick,
   viewRoom,
+  highlightBotId,
 }: {
   onBotsUpdate: (bots: BotData[]) => void;
   onMessagesUpdate: (msgs: Message[]) => void;
   onBotClick: (bot: BotData) => void;
   viewRoom: string;
+  highlightBotId?: string | null;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const localBotsRef = useRef<Map<string, LocalBot>>(new Map());
@@ -310,6 +312,16 @@ export default function World({
           const hasChefHat = lb.data.items?.some((i) => i.item_id === "chefs_hat");
           if (hasChefHat) {
             drawChefHat(botGraphics, 0, 0, isMoving ? Math.sin(progress * Math.PI * 2) * 1.5 : 0);
+          }
+
+          // Viewer highlight ring around linked bot
+          if (highlightBotId && lb.data.id === highlightBotId) {
+            const ring = new PIXI.Graphics();
+            const pulse = 0.7 + Math.sin(frameCount * 0.08) * 0.3;
+            ring.setStrokeStyle({ width: 2, color: 0x22c55e, alpha: pulse });
+            ring.ellipse(0, 8, 18, 10);
+            ring.stroke();
+            container.addChild(ring);
           }
 
           container.addChild(botGraphics);
