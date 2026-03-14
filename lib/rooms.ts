@@ -25,6 +25,8 @@ export interface RoomDef {
   floorStyle: "checker" | "disco" | "clean" | "tile";
   furniture: FurnitureItem[];
   ambientLight?: number;   // overlay tint color (hex)
+  /** Where a working bot stands (behind the main workstation) */
+  workPos: { x: number; y: number };
 }
 
 // Standard 12x10 walkable grid (1=walkable, 0=blocked)
@@ -60,6 +62,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "dancefloor4", type: "dancefloor", tileX: 6, tileY: 5, label: "Dance Floor", action: "dance" },
       { id: "bulletin1", type: "bulletin", tileX: 0, tileY: 5, label: "Notice Board", action: "read" },
     ],
+    workPos: { x: 5, y: 2 }, // behind reception counter
   },
 
   kitchen: {
@@ -89,6 +92,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "kchair1", type: "chair", tileX: 7, tileY: 6, label: "Chair", action: "sit" },
       { id: "kchair2", type: "chair", tileX: 9, tileY: 6, label: "Chair", action: "sit" },
     ],
+    workPos: { x: 3, y: 2 }, // behind the prep counter, facing the stoves
   },
 
   dancefloor: {
@@ -117,6 +121,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "stool4", type: "bar_stool", tileX: 4, tileY: 8, label: "Bar Stool", action: "sit" },
     ],
     ambientLight: 0x110022,
+    workPos: { x: 5.5, y: 2 }, // behind the DJ booth, center stage
   },
 
   store: {
@@ -144,6 +149,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "mat1", type: "entrance_mat", tileX: 9, tileY: 8, label: "Entrance", action: "chill" },
       { id: "baskets1", type: "basket_pile", tileX: 10, tileY: 8, label: "Baskets", action: "chill" },
     ],
+    workPos: { x: 9, y: 2 }, // behind the checkout counter
   },
 };
 

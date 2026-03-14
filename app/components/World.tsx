@@ -281,6 +281,14 @@ export default function World({
           const botRoom = lb.data.room_id || "lobby";
           if (botRoom !== visibleRoomId) continue;
 
+          // Snap bot to their room's work position (behind the counter/booth/stove)
+          // Offset slightly per bot so multiple bots don't perfectly overlap
+          const roomDef = ROOMS[botRoom] || ROOMS.lobby;
+          const workPos = roomDef.workPos;
+          const botIndex = entries.filter((e) => (e.data.room_id || "lobby") === botRoom).indexOf(lb);
+          lb.targetX = workPos.x + botIndex * 1.2;
+          lb.targetY = workPos.y + botIndex * 0.5;
+
           lb.x += (lb.targetX - lb.x) * 0.08;
           lb.y += (lb.targetY - lb.y) * 0.08;
 
