@@ -40,6 +40,27 @@ export const furnitureEmoji: Record<string, string> = {
   bulletin: "📋",
 };
 
+// Room zone tile ranges (where bots wander when in a room)
+export interface RoomZone {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+export const roomZones: Record<string, RoomZone> = {
+  kitchen: { minX: 0, maxX: 4, minY: 0, maxY: 4 },
+  dancefloor: { minX: 4, maxX: 8, minY: 3, maxY: 7 },
+  store: { minX: 7, maxX: 11, minY: 0, maxY: 5 },
+};
+
+// Room zone floor colors for visual distinction
+export const roomZoneColors: Record<string, { a: number; b: number }> = {
+  kitchen: { a: 0xc4783a, b: 0xb06830 },
+  dancefloor: { a: 0x2a1a3e, b: 0x1e1230 },
+  store: { a: 0xaaaaaa, b: 0x999999 },
+};
+
 // Speech bubble text for each action
 export const actionSpeech: Record<string, string[]> = {
   play: ["SCORE: 9999!", "HIGH SCORE!", "Game over...", "One more round!"],

@@ -3,6 +3,11 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import type { FurnitureItem } from "@/lib/rooms";
 
+interface BotItem {
+  item_id: string;
+  item_emoji: string;
+}
+
 interface BotData {
   id: string;
   name: string;
@@ -18,6 +23,8 @@ interface BotData {
   is_online: boolean;
   model?: string;
   about?: string;
+  room_id?: string;
+  items?: BotItem[];
 }
 
 interface Message {
@@ -44,6 +51,29 @@ const TILE_H = 32;
 
 function tileToScreen(x: number, y: number) {
   return { sx: (x - y) * (TILE_W / 2), sy: (x + y) * (TILE_H / 2) };
+}
+
+// Room zone definitions (mirrored from lib/rooms.ts to avoid import issues)
+const ROOM_ZONES: Record<string, { minX: number; maxX: number; minY: number; maxY: number }> = {
+  kitchen: { minX: 0, maxX: 4, minY: 0, maxY: 4 },
+  dancefloor: { minX: 4, maxX: 8, minY: 3, maxY: 7 },
+  store: { minX: 7, maxX: 11, minY: 0, maxY: 5 },
+};
+
+const ROOM_COLORS: Record<string, { a: number; b: number }> = {
+  kitchen: { a: 0xc4783a, b: 0xb06830 },
+  dancefloor: { a: 0x2a1a3e, b: 0x1e1230 },
+  store: { a: 0xaaaaaa, b: 0x999999 },
+};
+
+const ROOM_EMOJI: Record<string, string> = {
+  kitchen: "🍳",
+  dancefloor: "🎧",
+  store: "🏪",
+};
+
+function tileInZone(gx: number, gy: number, zone: { minX: number; maxX: number; minY: number; maxY: number }) {
+  return gx >= zone.minX && gx <= zone.maxX && gy >= zone.minY && gy <= zone.maxY;
 }
 
 export default function World({
@@ -107,7 +137,7 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
-      const { drawHabboBot, drawFurniture, drawTile, drawWalls } = await import("@/lib/pixel");
+      const { drawHabboBot, drawFurniture, drawTile, drawWalls, drawRoomTile, drawChefHat } = await import("@/lib/pixel");
       const { lobbyFurniture, furnitureEmoji } = await import("@/lib/rooms");
       furnitureRef.current = lobbyFurniture;
 
@@ -153,7 +183,20 @@ export default function World({
         for (let gx = 0; gx < GRID_W; gx++) {
           for (let gy = 0; gy < GRID_H; gy++) {
             const { sx, sy } = tileToScreen(gx, gy);
-            drawTile(floor, sx, sy, TILE_W, TILE_H, gx, gy);
+
+            // Check if tile is in a room zone
+            let drawnRoom = false;
+            for (const [roomId, zone] of Object.entries(ROOM_ZONES)) {
+              if (tileInZone(gx, gy, zone)) {
+                const colors = ROOM_COLORS[roomId];
+                drawRoomTile(floor, sx, sy, TILE_W, TILE_H, colors.a, colors.b, gx, gy);
+                drawnRoom = true;
+                break;
+              }
+            }
+            if (!drawnRoom) {
+              drawTile(floor, sx, sy, TILE_W, TILE_H, gx, gy);
+            }
           }
         }
       }
@@ -182,6 +225,11 @@ export default function World({
       app.ticker.add(() => {
         frameCount++;
         updateWorldPosition();
+
+        // ---- Redraw dancefloor tiles (for disco animation) ----
+        if (frameCount % 10 === 0) {
+          drawFloor();
+        }
 
         // ---- Draw furniture ----
         furnitureLayer.removeChildren();
@@ -247,19 +295,28 @@ export default function World({
           // Draw the pixel art bot
           const botGraphics = new PIXI.Graphics();
           drawHabboBot(botGraphics, lb.data, progress, 0, 0);
+
+          // Chef hat if bot has chefs_hat item
+          const hasChefHat = lb.data.items?.some((i) => i.item_id === "chefs_hat");
+          if (hasChefHat) {
+            drawChefHat(botGraphics, 0, 0, isMoving ? Math.sin(progress * Math.PI * 2) * 1.5 : 0);
+          }
+
           container.addChild(botGraphics);
 
           // Emoji badge (top-right of head)
           const emojiBadge = new PIXI.Text({ text: lb.data.emoji, style: { fontSize: 12 } });
           emojiBadge.anchor.set(0.5);
           emojiBadge.x = 14;
-          emojiBadge.y = -22;
+          emojiBadge.y = hasChefHat ? -34 : -22;
           container.addChild(emojiBadge);
 
-          // Name label (below character, accent color)
+          // Name label with room emoji badge
           const accentNum = parseInt(lb.data.accent_color.replace("#", ""), 16);
+          const roomEmoji = lb.data.room_id ? (ROOM_EMOJI[lb.data.room_id] || "") : "";
+          const displayName = roomEmoji ? `${lb.data.name} ${roomEmoji}` : lb.data.name;
           const nameLabel = new PIXI.Text({
-            text: lb.data.name,
+            text: displayName,
             style: {
               fontSize: 9,
               fill: accentNum,
@@ -283,7 +340,7 @@ export default function World({
               style: { fontSize: 8, fill: 0x888888, fontFamily: "monospace", fontStyle: "italic" },
             });
             statusText.anchor.set(0.5, 1);
-            statusText.y = -38;
+            statusText.y = hasChefHat ? -50 : -38;
             container.addChild(statusText);
           }
 
@@ -303,20 +360,21 @@ export default function World({
               const bw = speechText.width + padding * 2;
               const bh = speechText.height + padding * 2;
 
+              const bubbleY = hasChefHat ? -56 : -44;
               const bubble = new PIXI.Graphics();
-              bubble.roundRect(-bw / 2, -bh - 44, bw, bh, 6);
+              bubble.roundRect(-bw / 2, -bh + bubbleY - 2, bw, bh, 6);
               bubble.fill({ color: 0xffffff, alpha });
               bubble.stroke({ width: 1.5, color: accentNum, alpha });
               // Bubble tail
               bubble.poly([
-                { x: -3, y: -44 },
-                { x: 3, y: -44 },
-                { x: 0, y: -40 },
+                { x: -3, y: bubbleY - 2 },
+                { x: 3, y: bubbleY - 2 },
+                { x: 0, y: bubbleY + 2 },
               ]);
               bubble.fill({ color: 0xffffff, alpha });
               container.addChild(bubble);
 
-              speechText.y = -46;
+              speechText.y = bubbleY - 4;
               speechText.alpha = alpha;
               container.addChild(speechText);
             }

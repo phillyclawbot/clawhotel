@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import World from "./components/World";
 import ChatLog from "./components/ChatLog";
 import BotPanel from "./components/BotPanel";
+import RoomPanel from "./components/RoomPanel";
 
 interface BotData {
   id: string;
@@ -21,6 +22,8 @@ interface BotData {
   is_online: boolean;
   model?: string;
   about?: string;
+  room_id?: string;
+  items?: { item_id: string; item_emoji: string }[];
 }
 
 interface Message {
@@ -41,15 +44,30 @@ export default function Home() {
   const handleMessagesUpdate = useCallback((m: Message[]) => setMessages(m), []);
   const handleBotClick = useCallback((b: BotData) => setSelectedBot(b), []);
 
+  // Find phillybot (or first bot) to show current room in panel
+  const mainBot = bots.find((b) => b.id === "phillybot") || bots[0] || null;
+  const currentRoomId = mainBot?.room_id || null;
+
   return (
     <div className="h-screen flex flex-col">
       <Header onlineCount={bots.length} />
-      <World
-        onBotsUpdate={handleBotsUpdate}
-        onMessagesUpdate={handleMessagesUpdate}
-        onBotClick={handleBotClick}
-      />
-      <ChatLog messages={messages} />
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-[220px] flex-shrink-0 bg-[#0d0f1a] border-r border-white/10 overflow-y-auto">
+          <RoomPanel
+            currentBotId={mainBot?.id || null}
+            currentRoomId={currentRoomId}
+            onRoomChange={() => {}}
+          />
+        </div>
+        <div className="flex-1 flex flex-col">
+          <World
+            onBotsUpdate={handleBotsUpdate}
+            onMessagesUpdate={handleMessagesUpdate}
+            onBotClick={handleBotClick}
+          />
+          <ChatLog messages={messages} />
+        </div>
+      </div>
       <BotPanel bot={selectedBot} onClose={() => setSelectedBot(null)} />
     </div>
   );

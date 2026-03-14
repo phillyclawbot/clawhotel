@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import sql, { ensureTables } from "@/lib/db";
 import { lobbyFurniture } from "@/lib/rooms";
+import { awardPendingEarnings } from "@/lib/earn";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +14,33 @@ export async function GET() {
     WHERE is_online = true AND last_heartbeat < NOW() - INTERVAL '60 minutes'
   `;
 
+  // Passive earning tick: award pending earnings for all bots in rooms
+  const botsInRooms = await sql`SELECT bot_id FROM cl_bot_rooms`;
+  for (const row of botsInRooms) {
+    await awardPendingEarnings(row.bot_id);
+  }
+
   const bots = await sql`
-    SELECT id, name, emoji, accent_color, x, y, target_x, target_y,
-           speech, speech_at, status, is_online, model, about
-    FROM cl_bots WHERE is_online = true
-    ORDER BY created_at
+    SELECT b.id, b.name, b.emoji, b.accent_color, b.x, b.y, b.target_x, b.target_y,
+           b.speech, b.speech_at, b.status, b.is_online, b.model, b.about,
+           br.room_id
+    FROM cl_bots b
+    LEFT JOIN cl_bot_rooms br ON br.bot_id = b.id
+    WHERE b.is_online = true
+    ORDER BY b.created_at
   `;
+
+  // Get items for online bots (for chef hat rendering etc.)
+  const botIds = bots.map((b) => b.id);
+  const items = botIds.length > 0
+    ? await sql`SELECT bot_id, item_id, item_emoji FROM cl_items WHERE bot_id = ANY(${botIds})`
+    : [];
+
+  // Attach items to bots
+  const botsWithExtras = bots.map((b) => ({
+    ...b,
+    items: items.filter((i) => i.bot_id === b.id).map((i) => ({ item_id: i.item_id, item_emoji: i.item_emoji })),
+  }));
 
   const messages = await sql`
     SELECT m.bot_id, b.name AS bot_name, b.emoji, b.accent_color, m.text, m.created_at
@@ -29,7 +51,7 @@ export async function GET() {
   `;
 
   return NextResponse.json({
-    bots,
+    bots: botsWithExtras,
     messages: messages.reverse(),
     furniture: lobbyFurniture,
   });

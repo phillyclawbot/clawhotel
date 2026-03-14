@@ -151,6 +151,24 @@ export function drawHabboBot(
   g.fill({ color: 0xff9999, alpha: 0.3 });
 }
 
+// ---- drawChefHat (rendered on top of bot head) ----
+
+export function drawChefHat(g: Graphics, ox: number, oy: number, bobY: number) {
+  const cy = oy - 16 + bobY;
+  // Hat brim
+  g.rect(ox - 8 * B, cy - 9 * B, 16 * B, 2 * B);
+  g.fill(0xffffff);
+  // Hat puff (tall white part)
+  g.rect(ox - 6 * B, cy - 15 * B, 12 * B, 6 * B);
+  g.fill(0xffffff);
+  // Hat top puff (rounded look)
+  g.rect(ox - 4 * B, cy - 17 * B, 8 * B, 3 * B);
+  g.fill(0xf8f8f8);
+  // Subtle shadow line on brim
+  g.rect(ox - 7 * B, cy - 9 * B, 14 * B, 0.5 * B);
+  g.fill({ color: 0x000000, alpha: 0.1 });
+}
+
 // ---- drawFurniture ----
 
 export type FurnitureType = "chair" | "table" | "arcade" | "dancefloor" | "plant" | "counter" | "jukebox" | "bulletin";
@@ -395,6 +413,30 @@ export function drawTile(
   const colorB = 0x7a6348;
   const color = (gx + gy) % 2 === 0 ? colorA : colorB;
 
+  g.poly([
+    { x: sx, y: sy },
+    { x: sx + tileW / 2, y: sy + tileH / 2 },
+    { x: sx, y: sy + tileH },
+    { x: sx - tileW / 2, y: sy + tileH / 2 },
+  ]);
+  g.fill(color);
+  g.stroke({ width: 1, color: 0x5a4a38 });
+}
+
+// ---- drawRoomTile (room-specific floor color) ----
+
+export function drawRoomTile(
+  g: Graphics,
+  sx: number,
+  sy: number,
+  tileW: number,
+  tileH: number,
+  colorA: number,
+  colorB: number,
+  gx: number,
+  gy: number
+) {
+  const color = (gx + gy) % 2 === 0 ? colorA : colorB;
   g.poly([
     { x: sx, y: sy },
     { x: sx + tileW / 2, y: sy + tileH / 2 },
