@@ -7,10 +7,10 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   await ensureTables();
 
-  // Mark bots offline if no heartbeat in 2 minutes
+  // Mark bots offline if no heartbeat in 60 minutes
   await sql`
     UPDATE cl_bots SET is_online = false
-    WHERE is_online = true AND last_heartbeat < NOW() - INTERVAL '2 minutes'
+    WHERE is_online = true AND last_heartbeat < NOW() - INTERVAL '60 minutes'
   `;
 
   const bots = await sql`
