@@ -33,6 +33,10 @@ export default function Header({
           <span className="hidden sm:inline">{onlineCount} online</span>
           <span className="sm:hidden">{onlineCount}</span>
         </span>
+        <div className="hidden sm:flex gap-4 text-xs text-white/50">
+          <Link href="/about" className="hover:text-white transition-colors">About</Link>
+          <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
+        </div>
         <Link
           href="/register"
           className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-medium rounded transition-colors text-xs"
