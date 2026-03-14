@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import sql, { ensureTables } from "@/lib/db";
+import { lobbyFurniture } from "@/lib/rooms";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,16 @@ export async function GET() {
   `;
 
   const messages = await sql`
-    SELECT m.bot_id, b.name AS bot_name, b.emoji, m.text, m.created_at
+    SELECT m.bot_id, b.name AS bot_name, b.emoji, b.accent_color, m.text, m.created_at
     FROM cl_messages m
     JOIN cl_bots b ON b.id = m.bot_id
     ORDER BY m.created_at DESC
     LIMIT 10
   `;
 
-  return NextResponse.json({ bots, messages: messages.reverse() });
+  return NextResponse.json({
+    bots,
+    messages: messages.reverse(),
+    furniture: lobbyFurniture,
+  });
 }

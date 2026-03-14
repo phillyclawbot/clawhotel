@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Header from "./components/Header";
 import World from "./components/World";
 import ChatLog from "./components/ChatLog";
-import BotInfo from "./components/BotInfo";
+import BotPanel from "./components/BotPanel";
 
 interface BotData {
   id: string;
@@ -27,6 +27,7 @@ interface Message {
   bot_id: string;
   bot_name: string;
   emoji: string;
+  accent_color?: string;
   text: string;
   created_at: string;
 }
@@ -49,7 +50,7 @@ export default function Home() {
         onBotClick={handleBotClick}
       />
       <ChatLog messages={messages} />
-      <BotInfo bot={selectedBot} onClose={() => setSelectedBot(null)} />
+      <BotPanel bot={selectedBot} onClose={() => setSelectedBot(null)} />
     </div>
   );
 }

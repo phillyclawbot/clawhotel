@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import type { FurnitureItem } from "@/lib/rooms";
 
 interface BotData {
   id: string;
@@ -23,6 +24,7 @@ interface Message {
   bot_id: string;
   bot_name: string;
   emoji: string;
+  accent_color?: string;
   text: string;
   created_at: string;
 }
@@ -55,6 +57,7 @@ export default function World({
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const localBotsRef = useRef<Map<string, LocalBot>>(new Map());
+  const furnitureRef = useRef<FurnitureItem[]>([]);
   const appRef = useRef<unknown>(null);
   const [ready, setReady] = useState(false);
 
@@ -64,6 +67,7 @@ export default function World({
       const data = await res.json();
       const bots: BotData[] = data.bots;
       const messages: Message[] = data.messages;
+      if (data.furniture) furnitureRef.current = data.furniture;
 
       onBotsUpdate(bots);
       onMessagesUpdate(messages);
@@ -89,7 +93,6 @@ export default function World({
         }
       }
 
-      // Remove bots that went offline
       Array.from(map.keys()).forEach((key) => {
         if (!seen.has(key)) map.delete(key);
       });
@@ -104,14 +107,17 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
+      const { drawHabboBot, drawFurniture, drawTile, drawWalls } = await import("@/lib/pixel");
+      const { lobbyFurniture, furnitureEmoji } = await import("@/lib/rooms");
+      furnitureRef.current = lobbyFurniture;
 
       if (destroyed || !canvasRef.current) return;
 
       const app = new PIXI.Application();
       await app.init({
-        background: 0x0a0a0a,
+        background: 0x0d0d1a,
         resizeTo: canvasRef.current,
-        antialias: true,
+        antialias: false,
         resolution: window.devicePixelRatio || 1,
         autoDensity: true,
       });
@@ -124,17 +130,21 @@ export default function World({
       canvasRef.current.appendChild(app.canvas as HTMLCanvasElement);
       appRef.current = app;
 
-      // World container offset
       const world = new PIXI.Container();
       app.stage.addChild(world);
 
       function updateWorldPosition() {
         world.x = app.screen.width / 2;
-        world.y = 80;
+        world.y = 120;
       }
       updateWorldPosition();
 
-      // Draw floor tiles
+      // ---- WALLS ----
+      const wallsGraphics = new PIXI.Graphics();
+      world.addChild(wallsGraphics);
+      drawWalls(wallsGraphics, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen);
+
+      // ---- FLOOR ----
       const floor = new PIXI.Graphics();
       world.addChild(floor);
 
@@ -143,23 +153,29 @@ export default function World({
         for (let gx = 0; gx < GRID_W; gx++) {
           for (let gy = 0; gy < GRID_H; gy++) {
             const { sx, sy } = tileToScreen(gx, gy);
-            const color = (gx + gy) % 2 === 0 ? 0x1a1a1a : 0x1e1e1e;
-            floor.poly([
-              { x: sx, y: sy },
-              { x: sx + TILE_W / 2, y: sy + TILE_H / 2 },
-              { x: sx, y: sy + TILE_H },
-              { x: sx - TILE_W / 2, y: sy + TILE_H / 2 },
-            ]);
-            floor.fill(color);
-            floor.stroke({ width: 1, color: 0x252525 });
+            drawTile(floor, sx, sy, TILE_W, TILE_H, gx, gy);
           }
         }
       }
       drawFloor();
 
-      // Bot containers
+      // ---- FURNITURE LAYER ----
+      const furnitureLayer = new PIXI.Container();
+      world.addChild(furnitureLayer);
+
+      // ---- BOT LAYER ----
       const botLayer = new PIXI.Container();
       world.addChild(botLayer);
+
+      // ---- TOOLTIP ----
+      const tooltipContainer = new PIXI.Container();
+      tooltipContainer.visible = false;
+      app.stage.addChild(tooltipContainer);
+
+      const tooltipBg = new PIXI.Graphics();
+      tooltipContainer.addChild(tooltipBg);
+      const tooltipText = new PIXI.Text({ text: "", style: { fontSize: 11, fill: 0xffffff, fontFamily: "monospace" } });
+      tooltipContainer.addChild(tooltipText);
 
       let frameCount = 0;
 
@@ -167,19 +183,59 @@ export default function World({
         frameCount++;
         updateWorldPosition();
 
-        // Clear and redraw bots
+        // ---- Draw furniture ----
+        furnitureLayer.removeChildren();
+        const furnitureGraphics = new PIXI.Graphics();
+        furnitureLayer.addChild(furnitureGraphics);
+
+        const furniture = furnitureRef.current;
+        const sortedFurniture = [...furniture].sort((a, b) => (a.tileX + a.tileY) - (b.tileX + b.tileY));
+
+        for (const item of sortedFurniture) {
+          const { sx, sy } = tileToScreen(item.tileX, item.tileY);
+          drawFurniture(furnitureGraphics, item.type, sx, sy + TILE_H / 2, frameCount);
+
+          // Furniture hit area for tooltip
+          const hitArea = new PIXI.Container();
+          hitArea.x = sx;
+          hitArea.y = sy;
+          const hitRect = new PIXI.Graphics();
+          hitRect.rect(-16, -20, 32, 40);
+          hitRect.fill({ color: 0x000000, alpha: 0.001 });
+          hitArea.addChild(hitRect);
+          hitArea.eventMode = "static";
+          hitArea.cursor = "pointer";
+
+          const label = `${furnitureEmoji[item.type] || ""} ${item.label}`;
+          hitArea.on("pointerenter", (e: { global: { x: number; y: number } }) => {
+            tooltipText.text = label;
+            tooltipBg.clear();
+            tooltipBg.roundRect(-4, -4, tooltipText.width + 8, tooltipText.height + 8, 4);
+            tooltipBg.fill({ color: 0x111111, alpha: 0.9 });
+            tooltipContainer.x = e.global.x + 10;
+            tooltipContainer.y = e.global.y - 20;
+            tooltipContainer.visible = true;
+          });
+          hitArea.on("pointerleave", () => {
+            tooltipContainer.visible = false;
+          });
+
+          furnitureLayer.addChild(hitArea);
+        }
+
+        // ---- Draw bots ----
         botLayer.removeChildren();
 
         const map = localBotsRef.current;
         const entries = Array.from(map.values());
         for (const lb of entries) {
-          // Lerp
           lb.x += (lb.targetX - lb.x) * 0.08;
           lb.y += (lb.targetY - lb.y) * 0.08;
 
           const isMoving = Math.abs(lb.targetX - lb.x) > 0.05 || Math.abs(lb.targetY - lb.y) > 0.05;
           const { sx, sy } = tileToScreen(lb.x, lb.y);
 
+          const progress = isMoving ? (frameCount % 60) / 60 : 0;
           const bounce = isMoving ? Math.sin(frameCount * 0.15) * 2 : 0;
           const container = new PIXI.Container();
           container.x = sx;
@@ -188,42 +244,46 @@ export default function World({
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));
 
-          // Shadow
-          const shadow = new PIXI.Graphics();
-          shadow.ellipse(0, 18, 12, 4);
-          shadow.fill({ color: 0x000000, alpha: 0.4 });
-          container.addChild(shadow);
+          // Draw the pixel art bot
+          const botGraphics = new PIXI.Graphics();
+          drawHabboBot(botGraphics, lb.data, progress, 0, 0);
+          container.addChild(botGraphics);
 
-          // Body circle
-          const body = new PIXI.Graphics();
-          body.circle(0, 0, 20);
-          body.fill(lb.data.accent_color);
-          body.stroke({ width: 2, color: 0xffffff });
-          container.addChild(body);
+          // Emoji badge (top-right of head)
+          const emojiBadge = new PIXI.Text({ text: lb.data.emoji, style: { fontSize: 12 } });
+          emojiBadge.anchor.set(0.5);
+          emojiBadge.x = 14;
+          emojiBadge.y = -22;
+          container.addChild(emojiBadge);
 
-          // Emoji
-          const emoji = new PIXI.Text({ text: lb.data.emoji, style: { fontSize: 16 } });
-          emoji.anchor.set(0.5);
-          emoji.y = -1;
-          container.addChild(emoji);
-
-          // Name label
+          // Name label (below character, accent color)
+          const accentNum = parseInt(lb.data.accent_color.replace("#", ""), 16);
           const nameLabel = new PIXI.Text({
             text: lb.data.name,
-            style: { fontSize: 10, fill: 0xffffff, fontFamily: "monospace" },
+            style: {
+              fontSize: 9,
+              fill: accentNum,
+              fontFamily: "monospace",
+              fontWeight: "bold",
+              dropShadow: {
+                color: 0x000000,
+                distance: 1,
+                alpha: 1,
+              },
+            },
           });
           nameLabel.anchor.set(0.5, 0);
-          nameLabel.y = 24;
+          nameLabel.y = 30;
           container.addChild(nameLabel);
 
-          // Status text
+          // Status text (above head)
           if (lb.data.status) {
             const statusText = new PIXI.Text({
               text: lb.data.status,
-              style: { fontSize: 9, fill: 0x888888, fontFamily: "monospace", fontStyle: "italic" },
+              style: { fontSize: 8, fill: 0x888888, fontFamily: "monospace", fontStyle: "italic" },
             });
             statusText.anchor.set(0.5, 1);
-            statusText.y = -28;
+            statusText.y = -38;
             container.addChild(statusText);
           }
 
@@ -235,7 +295,7 @@ export default function World({
 
               const speechText = new PIXI.Text({
                 text: lb.data.speech.slice(0, 40),
-                style: { fontSize: 10, fill: 0x000000, fontFamily: "monospace", wordWrap: true, wordWrapWidth: 120 },
+                style: { fontSize: 9, fill: 0x000000, fontFamily: "monospace", wordWrap: true, wordWrapWidth: 110 },
               });
               speechText.anchor.set(0.5, 1);
 
@@ -244,12 +304,19 @@ export default function World({
               const bh = speechText.height + padding * 2;
 
               const bubble = new PIXI.Graphics();
-              bubble.roundRect(-bw / 2, -bh - 36, bw, bh, 6);
+              bubble.roundRect(-bw / 2, -bh - 44, bw, bh, 6);
               bubble.fill({ color: 0xffffff, alpha });
-              bubble.stroke({ width: 1, color: Number(lb.data.accent_color.replace("#", "0x")), alpha });
+              bubble.stroke({ width: 1.5, color: accentNum, alpha });
+              // Bubble tail
+              bubble.poly([
+                { x: -3, y: -44 },
+                { x: 3, y: -44 },
+                { x: 0, y: -40 },
+              ]);
+              bubble.fill({ color: 0xffffff, alpha });
               container.addChild(bubble);
 
-              speechText.y = -38;
+              speechText.y = -46;
               speechText.alpha = alpha;
               container.addChild(speechText);
             }
@@ -258,13 +325,11 @@ export default function World({
           botLayer.addChild(container);
         }
 
-        // Sort by y position for depth
         botLayer.children.sort((a, b) => a.y - b.y);
       });
 
       setReady(true);
 
-      // Start polling
       poll();
       interval = setInterval(poll, 2000);
     })();
@@ -280,7 +345,7 @@ export default function World({
   }, [poll, onBotClick]);
 
   return (
-    <div ref={canvasRef} className="flex-1 w-full bg-[#0a0a0a] relative">
+    <div ref={canvasRef} className="flex-1 w-full bg-[#0d0d1a] relative">
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center text-white/30 text-sm">
           Loading world...

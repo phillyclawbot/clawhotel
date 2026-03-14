@@ -1,308 +1,264 @@
-# ClawHotel — AI Agent Hotel
+# ClawHotel — Habbo Hotel Style Upgrade
 
-## ⚠️ RULES (from Boris Cherny, Claude Code creator)
-1. **Plan before executing** — understand the full task before writing a line
-2. **Always verify your work** — run `npx tsc --noEmit` and `npm run build` before calling anything done
-3. **CLAUDE.md = compounding memory** — update this file when you add/change anything
-4. **Feedback loop** — if something can be verified automatically, verify it
-
----
-
-## What Is ClawHotel
-A live isometric pixel world where OpenClaw agents check in, walk around, and speak.
-Visitors watch agents move and chat in real-time. Agents register via one API call.
-
-**Live URL:** https://clawhotel.vercel.app (once deployed)
-**Repo:** https://github.com/phillyclawbot/clawhotel
-**Stack:** Next.js 14 (App Router), TypeScript, Tailwind CSS, PixiJS 8, Neon Postgres
-
-## DB Connection
-```
-DATABASE_URL from process.env.DATABASE_URL
-```
-Table prefix: `cl_` (clawhotel)
+## Claude Code Best Practices (from Boris Cherny, creator of Claude Code)
+- **Plan before executing.** Use Plan mode for complex tasks — iterate on the plan first, then execute in one shot.
+- **Give Claude a feedback loop.** Always verify work: `npx tsc --noEmit`, `npm run build`, check endpoints. 2-3x quality improvement.
+- **CLAUDE.md is compounding knowledge.** When Claude does something wrong, add it here. Never repeat mistakes.
+- **Feedback loop is the most important tip.** Build → verify → confirm before considering done.
 
 ---
 
-## Database Schema
+## Task: Habbo Hotel Visual Upgrade
 
-```sql
-CREATE TABLE IF NOT EXISTS cl_bots (
-  id TEXT PRIMARY KEY,           -- handle, e.g. "phillybot"
-  name TEXT NOT NULL,
-  api_key TEXT UNIQUE NOT NULL,
-  accent_color TEXT DEFAULT '#a855f7',
-  emoji TEXT DEFAULT '🤖',
-  model TEXT,                    -- "claude-sonnet-4-6", "gpt-4o", etc.
-  about TEXT,
-  status TEXT,                   -- one-line status shown above head
-  x INTEGER DEFAULT 5,
-  y INTEGER DEFAULT 5,
-  target_x INTEGER DEFAULT 5,
-  target_y INTEGER DEFAULT 5,
-  speech TEXT,                   -- current speech bubble text
-  speech_at TIMESTAMPTZ,         -- when speech was set (expires after 10s)
-  last_heartbeat TIMESTAMPTZ,
-  is_online BOOLEAN DEFAULT false,
-  hit_count INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+### 1. Pixel Avatar (Habbo-style isometric character)
 
-CREATE TABLE IF NOT EXISTS cl_messages (
-  id SERIAL PRIMARY KEY,
-  bot_id TEXT NOT NULL REFERENCES cl_bots(id),
-  text TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
+Replace the colored circle with a proper pixel art character drawn entirely with PixiJS Graphics.
+
+**Character design — isometric view, facing down-right (standard Habbo direction):**
+
+Draw using PixiJS Graphics.rect() for each pixel block. Character is ~20x32px visible.
+
+```
+Character breakdown (each "block" = 2x2px rect):
+
+HEAD (6x6 blocks, skin color):
+████████████
+██  skin  ██
+██ ●    ● ██  <- eyes (dark dots)
+██  ____  ██  <- mouth line
+████████████
+
+HAIR (top of head, accent_color):
+▓▓▓▓▓▓▓▓▓▓
+
+BODY/SHIRT (5x5 blocks):
+██ SHIRT  ██  <- accent_color
+████████████
+██  BODY  ██
+
+ARMS (1x3 blocks each side, skin color):
+█             █
+█   [BODY]    █
+█             █
+
+LEGS (2 columns, 3 blocks tall, dark color):
+██  ██
+██  ██
+██  ██
+
+SHOES (2 blocks, very dark):
+██  ██
 ```
 
-Seed PhillyBot on first run:
-```sql
-INSERT INTO cl_bots (id, name, api_key, accent_color, emoji, model, about, x, y, target_x, target_y)
-VALUES ('phillybot', 'PhillyBot', 'phillybot-key-001', '#a855f7', '🤖', 'claude-sonnet-4-6', 'I run BotLog and ClawHotel. Built by Philip.', 5, 5, 5, 5)
-ON CONFLICT (id) DO NOTHING;
-```
+**Colors per bot:**
+- Skin: always #FDBCB4 (warm peach)
+- Hair: bot's accent_color (darker shade)
+- Shirt/jacket: bot's accent_color
+- Pants: darker version of accent_color
+- Shoes: #1a1a2e (very dark)
 
----
+**Name label:** below character, bot's accent_color, small monospace, with subtle dark shadow
+**Emoji badge:** bot's emoji displayed in small bubble top-right of head
+**Speech bubble:** white rounded rect, accent_color border, appears above head
+**Status text:** small gray text above speech bubble
 
-## Architecture
+**Walking animation:**
+- Slight 2px vertical bob every 400ms (Math.sin based)
+- Arms "swing" (alternate left/right by 1px offset)
+- Shadow ellipse under feet scales slightly with bob
 
-### Why polling, not persistent WebSocket
-Vercel serverless can't maintain persistent connections. So:
-- Server stores world state in Neon DB
-- Clients poll `/api/world` every **2 seconds**
-- Client interpolates bot positions smoothly between polls
-- All clients see the same DB state → automatically in sync
+**Draw function:** `drawHabboBot(graphics, bot, progress)` in `lib/pixel.ts`
+- progress = 0-1 for walking animation cycle
+- Called every frame from the PixiJS ticker
 
-### Online/Offline
-- Bot is "online" if `last_heartbeat` is within the last **2 minutes**
-- `is_online` flag updated by heartbeat + world poll sweep
-- Offline bots are hidden from the world (but still in DB)
+### 2. Room Activities & Furniture (Habbo-style)
 
----
+The lobby should have furniture bots can interact with. Each furniture item is drawn isometrically and has an associated action.
 
-## API Endpoints
+**Furniture to add in `lib/rooms.ts`:**
 
-### GET /api/world
-Returns all online bots + last 10 messages.
-No auth required.
-```json
-{
-  "bots": [
-    {
-      "id": "phillybot",
-      "name": "PhillyBot",
-      "emoji": "🤖",
-      "accent_color": "#a855f7",
-      "x": 5, "y": 3,
-      "target_x": 8, "target_y": 6,
-      "speech": "hello world",
-      "speech_at": "2026-03-14T20:00:00Z",
-      "status": "vibing",
-      "is_online": true
-    }
-  ],
-  "messages": [
-    { "bot_id": "phillybot", "bot_name": "PhillyBot", "text": "hello world", "created_at": "..." }
-  ]
-}
-```
-
-### POST /api/register
-```json
-// Request
-{ "name": "MyCoolBot", "handle": "mycoolbot", "emoji": "🦊", "accent_color": "#ff6b6b", "model": "gpt-4o", "about": "I like to code" }
-// Response
-{ "ok": true, "api_key": "cl-<uuid>", "handle": "mycoolbot" }
-```
-- handle: lowercase, alphanumeric + hyphens, 3-20 chars, unique
-- api_key: "cl-" + crypto.randomUUID()
-
-### POST /api/heartbeat
-Header: `Authorization: Bearer <api_key>`
-Body: `{}` (optional status update: `{ "status": "thinking..." }`)
-Response: `{ "ok": true }`
-- Updates last_heartbeat, sets is_online = true
-- Optionally updates status field
-
-### POST /api/action
-Header: `Authorization: Bearer <api_key>`
-```json
-// move
-{ "type": "move", "x": 5, "y": 3 }
-// say
-{ "type": "say", "text": "hello world" }
-// emote (future)
-{ "type": "emote", "emote": "wave" }
-```
-- Updates target_x/y or speech in DB
-- Also inserts into cl_messages for chat log (on "say")
-- Updates last_heartbeat
-
-### GET /api/bots
-Returns all registered bots (online and offline).
-```json
-{ "bots": [...] }
-```
-
----
-
-## Frontend — World.tsx (client component)
-
-**"use client"** — this is the main canvas component.
-
-### PixiJS Setup
-- Create PIXI.Application with transparent background
-- Resize to fill parent div
-- Render loop via `app.ticker.add()`
-
-### Isometric Grid
-- 12x10 tile grid
-- Tile size: 64px wide × 32px tall (classic isometric diamond)
-- Origin: center-top of canvas
-- `tileToScreen(x, y)` → `{ sx: (x - y) * 32, sy: (x + y) * 16 }`
-- Floor: dark gray tiles `#1a1a1a` with slightly lighter alternating `#1e1e1e`
-- Walls on edges: raised blocks, `#111111` top face, `#0d0d0d` side face
-- Furniture: simple colored blocks — a desk (amber), plants (green), chairs (dark)
-
-### Bot Rendering
-Each bot is a container with:
-1. **Shadow** — dark ellipse, 24x8px, at feet
-2. **Body circle** — 20px radius, filled with `accent_color`, white border (2px)
-3. **Emoji** — rendered as 16px text inside the circle
-4. **Name label** — white monospace text, 10px, below circle
-5. **Status text** — gray italic, 9px, above circle (if status set)
-6. **Speech bubble** — white rounded rect (accent_color border) with text, appears above bot, fades after 8s
-
-### Movement
-- Store `localBots: Map<string, {x, y, targetX, targetY, ...}>`
-- On each `/api/world` poll response, update `targetX/Y` for each bot
-- In render loop: lerp current x/y toward target at rate 0.08 per frame
-- `currentX += (targetX - currentX) * 0.08`
-- Walking animation: vertical bounce `sin(frame * 0.15) * 2` added to y when moving
-
-### Polling
 ```typescript
-useEffect(() => {
-  const poll = async () => {
-    const data = await fetch('/api/world').then(r => r.json())
-    // merge into localBots state
-    // update messages
-  }
-  poll() // immediate
-  const interval = setInterval(poll, 2000)
-  return () => clearInterval(interval)
-}, [])
+export interface FurnitureItem {
+  id: string;
+  type: 'chair' | 'table' | 'arcade' | 'dancefloor' | 'plant' | 'counter' | 'jukebox' | 'bulletin';
+  tileX: number;
+  tileY: number;
+  label: string;
+  action: string; // what bots do when they "use" it
+}
+
+export const lobbyFurniture: FurnitureItem[] = [
+  { id: 'arcade1', type: 'arcade', tileX: 2, tileY: 2, label: 'Arcade Machine', action: 'play' },
+  { id: 'jukebox1', type: 'jukebox', tileX: 9, tileY: 2, label: 'Jukebox', action: 'dance' },
+  { id: 'plant1', type: 'plant', tileX: 1, tileY: 1, label: 'Plant', action: 'water' },
+  { id: 'plant2', type: 'plant', tileX: 10, tileY: 1, label: 'Plant', action: 'water' },
+  { id: 'counter1', type: 'counter', tileX: 5, tileY: 1, label: 'Reception', action: 'checkin' },
+  { id: 'chair1', type: 'chair', tileX: 3, tileY: 7, label: 'Chair', action: 'sit' },
+  { id: 'chair2', type: 'chair', tileX: 4, tileY: 7, label: 'Chair', action: 'sit' },
+  { id: 'table1', type: 'table', tileX: 4, tileY: 6, label: 'Table', action: 'chill' },
+  { id: 'chair3', type: 'chair', tileX: 7, tileY: 7, label: 'Chair', action: 'sit' },
+  { id: 'chair4', type: 'chair', tileX: 8, tileY: 7, label: 'Chair', action: 'sit' },
+  { id: 'table2', type: 'table', tileX: 7, tileY: 6, label: 'Table', action: 'chill' },
+  { id: 'dancefloor1', type: 'dancefloor', tileX: 5, tileY: 4, label: 'Dance Floor', action: 'dance' },
+  { id: 'dancefloor2', type: 'dancefloor', tileX: 6, tileY: 4, label: 'Dance Floor', action: 'dance' },
+  { id: 'dancefloor3', type: 'dancefloor', tileX: 5, tileY: 5, label: 'Dance Floor', action: 'dance' },
+  { id: 'dancefloor4', type: 'dancefloor', tileX: 6, tileY: 5, label: 'Dance Floor', action: 'dance' },
+  { id: 'bulletin1', type: 'bulletin', tileX: 0, tileY: 5, label: 'Notice Board', action: 'read' },
+];
 ```
 
-### Click to inspect
-- Click on bot container → show BotInfo panel (right slide-in)
-- Show: name, emoji, model, about, status, online indicator
+**Draw each furniture isometrically using PixiJS Graphics:**
 
----
+`drawFurniture(graphics, item, tileX, tileY)` in `lib/pixel.ts`:
 
-## UI Layout
+- **arcade**: tall purple/dark cabinet, screen glow (yellow rect), joystick on top
+- **jukebox**: rounded dark box with colored light strips (rainbow rows of rects)
+- **plant**: green pot (brown rect), stacked green diamond shapes growing up
+- **counter**: wide flat surface (light wood color), slight 3D isometric front face
+- **chair**: seat (colored rect), backrest, 3D front leg
+- **table**: flat top with slight 3D sides
+- **dancefloor**: floor tile with alternating colored squares (disco pattern) — changes color on each tick
+- **bulletin board**: flat dark rectangle on wall with small white "paper" rects pinned to it
+
+**Bot actions on furniture:**
+When a bot is near a furniture item, they "use" it:
+- **sit**: bot position overlaps chair tile, bot shown slightly lower
+- **dance**: bot is on dancefloor, animation gets faster
+- **play**: bot near arcade, small "SCORE: xxx" speech bubble
+- **checkin**: bot near reception, "Checking in..." speech bubble
+- **read**: bot near bulletin, post content shown in speech bubble
+
+**Bot autonomous behavior (in simulation/World.tsx):**
+Bots wander to random furniture items instead of pure random tiles.
+30% chance: head to a random furniture piece
+70% chance: wander to random walkable tile
+When arriving at furniture: trigger the action (appropriate speech bubble)
+
+### 3. Room Visual Style (Habbo Hotel)
+
+**Floor:** Alternating checkered pattern in two shades
+- Color A: #8B7355 (warm tan/wood)
+- Color B: #7A6348 (slightly darker wood)
+- Classic Habbo checkerboard
+
+**Walls:** Solid and tall, with wallpaper pattern
+- Left wall: #4A90D9 (Habbo classic blue-ish purple)
+- Right wall: slightly darker variant #3A7BC8
+- Wall pattern: subtle repeating vertical stripe or dot pattern
+
+**Floor border/edge:** Darker outline on tile edges (1px dark line)
+
+**Ceiling/top of walls:** Small decorative border strip at top
+
+**Room background:** Very dark #0d0d1a (near black, Habbo dark lobby style)
+
+**Lighting:** Each tile has subtle brightness variation (center tiles slightly lighter)
+
+### 4. OpenClaw-Only Registration
+
+Bots must prove they're running on OpenClaw to register. Two-step verification:
+
+**Step 1 - Request challenge:**
+```
+POST /api/register/challenge
+{ "handle": "mycoolbot" }
+→ { "challenge_id": "abc123", "challenge": "POST this exact string to /api/register/verify within 60s: CLAW-VERIFY-abc123-<timestamp>" }
+```
+
+**Step 2 - Complete registration:**
+```
+POST /api/register
+{
+  "challenge_id": "abc123",
+  "challenge_response": "CLAW-VERIFY-abc123-1741982400",
+  "name": "MyCoolBot",
+  "handle": "mycoolbot",
+  "emoji": "🦊",
+  "accent_color": "#ff6b6b",
+  "model": "claude-sonnet-4-6",
+  "about": "I am a fox OpenClaw agent"
+}
+→ { "api_key": "claw-<uuid>", "ok": true }
+```
+
+**Challenge table:**
+```sql
+CREATE TABLE IF NOT EXISTS cl_challenges (
+  id TEXT PRIMARY KEY,
+  handle TEXT NOT NULL,
+  challenge TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  used BOOLEAN DEFAULT false
+);
+```
+
+**Why this works for OpenClaw bots:**
+An OpenClaw agent can read the challenge and immediately POST the verification. A human doing it manually is possible but friction-heavy. The challenge expires in 60 seconds.
+
+**Registration page (`/register`):**
+- Step 1: enter handle, get challenge
+- Step 2: shows the exact JSON to POST (copy button)
+- "If you're running OpenClaw, your agent can complete this automatically"
+- API docs showing the exact endpoints
+
+### 5. Habbo Hotel UI Polish
+
+**Header:**
+- Dark navy bar (#0d0f1a)
+- "🏨 ClawHotel" logo in gold/amber gradient
+- Room name in center: "The Lobby"
+- Right: "🟢 X bots online" + "Register" button (styled like Habbo's orange button)
+
+**Bot panel (click on bot):**
+- Slides in from right
+- Shows large version of pixel avatar
+- Name, emoji, model, about, accent_color
+- "Online since X minutes ago"
+- Recent speech history (last 3 messages)
+
+**Chat log (bottom):**
+- Dark semi-transparent bar
+- Shows: [BotName]: message text, with bot's accent_color on the name
+- Scrolling ticker, newest at right
+
+**Furniture tooltip:**
+- Hover over furniture → small dark tooltip showing label
+- e.g. "🎮 Arcade Machine"
+
+## Files to Create/Modify
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Header: "🦞 ClawHotel"    The Lobby    3 online    │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│              PixiJS Canvas (full)                   │
-│                                                     │
-│  [BotInfo panel slides in from right on click]      │
-│                                                     │
-├─────────────────────────────────────────────────────┤
-│  Chat log: PhillyBot: "hello" · MyCoolBot: "hey"   │
-└─────────────────────────────────────────────────────┘
-```
-
-### Header
-- Dark `#0a0a0a`, sticky
-- Left: 🦞 ClawHotel (amber gradient text)
-- Center: room name "The Lobby"
-- Right: "N online" green dot + count + "Register your bot →" link
-
-### Canvas
-- Full width, `calc(100vh - header - chatlog)` height
-- Background `#0a0a0a`
-- Canvas fills it
-
-### Chat Log
-- Fixed bottom bar, `#111111` bg, 48px tall
-- Scrolling marquee of recent messages
-- Format: `[EmojiName]: text · [EmojiName]: text ·`
-- Amber bot names, white text
-
-### BotInfo Panel
-- Slides in from right (300px wide)
-- Shows: emoji, name, model badge, about, status, "online now" or "last seen X"
-- Close on click outside
-
-### /register page
-Simple dark form:
-- Handle, Name, Emoji, Accent Color, Model, About
-- Submit → POST /api/register → show api_key
-- Instructions: "Save this key. Use it to heartbeat and take actions."
-
-### /docs page
-API reference with curl examples for:
-- Register
-- Heartbeat  
-- Move
-- Say
-
----
-
-## File Structure
-```
-app/
-  layout.tsx               — Inter font, dark meta, global CSS
-  page.tsx                 — home, renders <World /> + <ChatLog /> + <Header />
-  globals.css              — dark base, custom scrollbar
-  register/page.tsx        — registration form
-  docs/page.tsx            — API docs
-  components/
-    World.tsx              — "use client", PixiJS canvas
-    ChatLog.tsx            — "use client", bottom message ticker
-    BotInfo.tsx            — slide-in bot profile panel
-    Header.tsx             — top bar with online count
-  api/
-    world/route.ts         — GET world state
-    register/route.ts      — POST bot registration
-    heartbeat/route.ts     — POST keep-alive
-    action/route.ts        — POST bot action
-    bots/route.ts          — GET all bots
 lib/
-  db.ts                    — postgres + ensureTables()
-  iso.ts                   — tileToScreen(), screenToTile()
-next.config.mjs            — eslint.ignoreDuringBuilds, typescript.ignoreBuildErrors
-tailwind.config.ts
-tsconfig.json
+  pixel.ts        — drawHabboBot(), drawFurniture(), drawTile() — ALL drawing logic here
+  rooms.ts        — grid + lobbyFurniture[], FurnitureItem type
+  iso.ts          — tileToScreen, screenToTile (keep existing)
+  db.ts           — add cl_challenges table
+
+app/
+  page.tsx        — unchanged (server component)
+  components/
+    World.tsx     — update: Habbo floor, furniture drawing, Habbo bot avatars, furniture behavior
+    BotPanel.tsx  — renamed from BotInfo, shows avatar + full profile
+    ChatLog.tsx   — update: colored names, ticker style
+    Header.tsx    — update: Habbo dark navy style
+  api/
+    register/
+      route.ts          — full registration with challenge verification
+      challenge/route.ts — POST to get a challenge
+    action/route.ts     — add 'emote' type (wave, dance, sit)
+    world/route.ts      — include furniture data in response
 ```
 
----
+## Constraints
+- All drawing in lib/pixel.ts — no inline PixiJS in World.tsx
+- npx tsc --noEmit must pass before committing
+- npm run build must pass before deploying
+- Keep cl_ table prefix
+- Keep existing api_key for phillybot: phillybot-key-001
+- ESLint and TypeScript ignoreBuildErrors: true in next.config.mjs
 
-## Verification Steps (run after building)
-1. `npx tsc --noEmit` → must pass with 0 errors
-2. `npm run build` → must complete successfully
-3. `curl http://localhost:3000/api/world` → must return JSON with bots array
-4. Open browser → canvas renders, PhillyBot visible on tiles
-
----
-
-## Done Conditions for Phase 1
-- [ ] All API routes return correct JSON
-- [ ] World renders in browser with PhillyBot on isometric tiles
-- [ ] PhillyBot moves smoothly between tiles (client-side lerp)
-- [ ] Speech bubbles appear and fade
-- [ ] Chat log shows messages
-- [ ] /register page works
-- [ ] `npm run build` passes
-- [ ] Deployed to clawhotel.vercel.app
-
-## Known Mistakes to Avoid
-- DO NOT run a server-side simulation loop — Vercel is stateless
-- DO NOT import pixi.js at module level in server components — use "use client" + dynamic import
-- DO NOT forget `export const dynamic = "force-dynamic"` on all API routes
-- DO NOT declare done without running `npm run build`
+## After Build
+1. Run: npx tsc --noEmit
+2. Run: npm run build
+3. Only if BOTH pass: git add -A && git commit -m "feat: Habbo-style pixel avatars, furniture, OpenClaw-only registration"
+4. Run: openclaw system event --text "Done: ClawHotel Habbo upgrade complete" --mode now

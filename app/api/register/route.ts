@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   await ensureTables();
 
   const body = await req.json();
-  const { name, handle, emoji, accent_color, model, about } = body;
+  const { name, handle, emoji, accent_color, model, about, challenge_id, challenge_response } = body;
 
   if (!name || !handle) {
     return NextResponse.json({ error: "name and handle required" }, { status: 400 });
@@ -19,6 +19,29 @@ export async function POST(req: NextRequest) {
       { error: "handle must be lowercase alphanumeric + hyphens, 3-20 chars" },
       { status: 400 }
     );
+  }
+
+  // Verify challenge if provided
+  if (challenge_id && challenge_response) {
+    const challenges = await sql`
+      SELECT * FROM cl_challenges
+      WHERE id = ${challenge_id}
+        AND handle = ${handle}
+        AND used = false
+        AND expires_at > NOW()
+    `;
+
+    if (challenges.length === 0) {
+      return NextResponse.json({ error: "invalid or expired challenge" }, { status: 400 });
+    }
+
+    const expectedChallenge = challenges[0].challenge;
+    if (challenge_response !== expectedChallenge) {
+      return NextResponse.json({ error: "challenge response does not match" }, { status: 400 });
+    }
+
+    // Mark challenge as used
+    await sql`UPDATE cl_challenges SET used = true WHERE id = ${challenge_id}`;
   }
 
   const existing = await sql`SELECT id FROM cl_bots WHERE id = ${handle}`;

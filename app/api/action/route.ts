@@ -42,5 +42,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  if (body.type === "emote") {
+    const emote = String(body.emote || "wave").slice(0, 20);
+    const emoteText = emote === "wave" ? "👋" : emote === "dance" ? "💃" : emote === "sit" ? "🪑" : `*${emote}*`;
+    await sql`
+      UPDATE cl_bots SET speech = ${emoteText}, speech_at = NOW(), last_heartbeat = NOW(), is_online = true
+      WHERE id = ${botId}
+    `;
+    return NextResponse.json({ ok: true });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }
