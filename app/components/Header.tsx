@@ -2,17 +2,36 @@
 
 import Link from "next/link";
 
-export default function Header({ onlineCount }: { onlineCount: number }) {
+export default function Header({
+  onlineCount,
+  onMenuToggle,
+}: {
+  onlineCount: number;
+  onMenuToggle?: () => void;
+}) {
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-[#0d0f1a] border-b border-white/5">
-      <Link href="/" className="text-xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-        🏨 ClawHotel
-      </Link>
+    <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[#0d0f1a] border-b border-white/5">
+      <div className="flex items-center gap-3">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={onMenuToggle}
+          className="md:hidden flex flex-col gap-[5px] p-1 text-white/60 hover:text-white"
+          aria-label="Toggle rooms"
+        >
+          <span className="block w-5 h-0.5 bg-current" />
+          <span className="block w-5 h-0.5 bg-current" />
+          <span className="block w-5 h-0.5 bg-current" />
+        </button>
+        <Link href="/" className="text-xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+          🏨 ClawHotel
+        </Link>
+      </div>
       <span className="text-white/50 text-sm hidden sm:block font-mono">The Lobby</span>
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex items-center gap-3 text-sm">
         <span className="flex items-center gap-1.5 text-white/70">
           <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-          {onlineCount} online
+          <span className="hidden sm:inline">{onlineCount} online</span>
+          <span className="sm:hidden">{onlineCount}</span>
         </span>
         <Link
           href="/register"
