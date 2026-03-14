@@ -24,6 +24,7 @@ interface BotData {
   about?: string;
   room_id?: string;
   mood?: string;
+  checked_in_at?: string;
   items?: BotItem[];
 }
 
@@ -422,6 +423,25 @@ export default function World({
               speechText.y = bubbleY - 4;
               speechText.alpha = alpha;
               container.addChild(speechText);
+            }
+          }
+
+          // Check-in sparkle animation
+          if (lb.data.checked_in_at) {
+            const checkinAge = (Date.now() - new Date(lb.data.checked_in_at).getTime()) / 1000;
+            if (checkinAge < 5) {
+              const sparkleGfx = new PIXI.Graphics();
+              const sparkleCount = 6;
+              for (let si = 0; si < sparkleCount; si++) {
+                const angle = (si / sparkleCount) * Math.PI * 2 + frameCount * 0.1;
+                const radius = 8 + checkinAge * 6;
+                const sparkleAlpha = Math.max(0, 1 - checkinAge / 5);
+                const sx2 = Math.cos(angle) * radius;
+                const sy2 = Math.sin(angle) * radius * 0.5 - 8;
+                sparkleGfx.circle(sx2, sy2, 2 - checkinAge * 0.3);
+                sparkleGfx.fill({ color: 0xFFD700, alpha: sparkleAlpha });
+              }
+              container.addChild(sparkleGfx);
             }
           }
 
