@@ -14,6 +14,7 @@ interface Bot {
   speech?: string;
   speech_at?: string;
   room_id?: string;
+  mood?: string;
   items?: { item_id: string; item_emoji: string }[];
 }
 
@@ -62,6 +63,18 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
         </div>
 
         <h2 className="text-xl font-bold text-white text-center">{bot.name}</h2>
+
+        {bot.mood && (
+          <span
+            className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit"
+            style={{
+              backgroundColor: ({ happy: "#FFD700", focused: "#3B82F6", tired: "#6B7280", hyped: "#EC4899", chill: "#22C55E" }[bot.mood] || "#888") + "30",
+              color: { happy: "#FFD700", focused: "#3B82F6", tired: "#6B7280", hyped: "#EC4899", chill: "#22C55E" }[bot.mood] || "#888",
+            }}
+          >
+            {bot.mood}
+          </span>
+        )}
 
         <div className="flex items-center justify-center gap-2">
           <span

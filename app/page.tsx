@@ -23,6 +23,7 @@ interface BotData {
   model?: string;
   about?: string;
   room_id?: string;
+  mood?: string;
   items?: { item_id: string; item_emoji: string }[];
 }
 

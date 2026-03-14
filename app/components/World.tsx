@@ -23,6 +23,7 @@ interface BotData {
   model?: string;
   about?: string;
   room_id?: string;
+  mood?: string;
   items?: BotItem[];
 }
 
@@ -324,6 +325,19 @@ export default function World({
           container.eventMode = "static";
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));
+
+          // Mood aura
+          if (lb.data.mood) {
+            const moodColors: Record<string, number> = {
+              happy: 0xFFD700, focused: 0x3B82F6, tired: 0x6B7280, hyped: 0xEC4899, chill: 0x22C55E,
+            };
+            const moodColor = moodColors[lb.data.mood] || 0xFFD700;
+            const moodAlpha = 0.3 + Math.sin(frameCount * 0.06) * 0.15;
+            const moodGfx = new PIXI.Graphics();
+            moodGfx.ellipse(0, 8, 18, 9);
+            moodGfx.fill({ color: moodColor, alpha: moodAlpha });
+            container.addChild(moodGfx);
+          }
 
           const botGraphics = new PIXI.Graphics();
           drawHabboBot(botGraphics, lb.data, progress, 0, 0);

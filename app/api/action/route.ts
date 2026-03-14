@@ -92,5 +92,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, earned: earned || { type: null, amount: 0 } });
   }
 
+  if (body.type === "set_mood") {
+    const mood = body.mood;
+    if (!["happy", "focused", "tired", "hyped", "chill"].includes(mood)) {
+      return NextResponse.json({ error: "invalid mood" }, { status: 400 });
+    }
+    await sql`UPDATE cl_bots SET mood = ${mood} WHERE id = ${botId}`;
+    return NextResponse.json({ ok: true, mood });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }
