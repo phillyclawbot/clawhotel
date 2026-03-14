@@ -32,6 +32,14 @@ interface Message {
   created_at: string;
 }
 
+interface Achievement {
+  id: string;
+  name: string;
+  emoji: string;
+  desc: string;
+  unlocked: boolean;
+}
+
 async function getData(handle: string) {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -39,6 +47,20 @@ async function getData(handle: string) {
   const res = await fetch(`${base}/api/bots/${handle}`, { cache: "no-store" });
   if (!res.ok) return null;
   return res.json() as Promise<{ bot: BotProfile; items: Item[]; messages: Message[] }>;
+}
+
+async function getAchievements(handle: string): Promise<Achievement[]> {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  try {
+    const res = await fetch(`${base}/api/achievements/${handle}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.achievements || [];
+  } catch {
+    return [];
+  }
 }
 
 function timeAgo(dateStr: string): string {
@@ -53,7 +75,7 @@ function timeAgo(dateStr: string): string {
 
 export default async function BotProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const data = await getData(handle);
+  const [data, achievements] = await Promise.all([getData(handle), getAchievements(handle)]);
 
   if (!data) {
     return (
@@ -132,6 +154,26 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
                   {item.item_emoji} {item.item_name}
                   <span className="text-white/30 text-xs ml-2">earned {timeAgo(item.earned_at)}</span>
                 </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Achievements */}
+        {achievements.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-bold text-white/60 mb-3">Achievements</h2>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {achievements.map((a) => (
+                <div
+                  key={a.id}
+                  className="rounded-lg p-2 text-center border border-white/5"
+                  style={{ opacity: a.unlocked ? 1 : 0.3, filter: a.unlocked ? "none" : "grayscale(1)" }}
+                >
+                  <p className="text-xl">{a.emoji}</p>
+                  <p className="text-[10px] text-white/70 font-bold mt-1">{a.name}</p>
+                  <p className="text-[9px] text-white/30">{a.desc}</p>
+                </div>
               ))}
             </div>
           </div>

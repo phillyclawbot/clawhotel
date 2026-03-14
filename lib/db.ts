@@ -120,6 +120,16 @@ export async function ensureTables() {
     )
   `;
 
+  // Achievements
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_achievements (
+      bot_id TEXT NOT NULL,
+      achievement_id TEXT NOT NULL,
+      unlocked_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (bot_id, achievement_id)
+    )
+  `;
+
   // Events
   await sql`
     CREATE TABLE IF NOT EXISTS cl_events (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import sql, { ensureTables } from "@/lib/db";
 import { awardPendingEarnings } from "@/lib/earn";
+import { checkAndAwardAchievements } from "@/lib/achievements";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,8 @@ export async function POST(req: NextRequest) {
 
     // Ensure stats row exists
     await sql`INSERT INTO cl_bot_stats (bot_id) VALUES (${botId}) ON CONFLICT DO NOTHING`;
+
+    await checkAndAwardAchievements(botId);
 
     return NextResponse.json({ ok: true, room: rooms[0] });
   }

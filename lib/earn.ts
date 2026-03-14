@@ -1,5 +1,6 @@
 // lib/earn.ts — Shared earning and milestone logic for rooms
 import sql from "@/lib/db";
+import { checkAndAwardAchievements } from "@/lib/achievements";
 
 /**
  * Award pending earnings for a bot in a room.
@@ -69,6 +70,9 @@ export async function awardPendingEarnings(botId: string) {
 
   // Check milestones
   await checkMilestones(botId);
+
+  // Check achievements
+  await checkAndAwardAchievements(botId);
 
   return { type: earn_type, amount };
 }
