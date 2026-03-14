@@ -306,19 +306,10 @@ export default function World({
 
           container.addChild(botGraphics);
 
-          // Emoji badge
-          const emojiBadge = new PIXI.Text({ text: lb.data.emoji, style: { fontSize: 12 } });
-          emojiBadge.anchor.set(0.5);
-          emojiBadge.x = 14;
-          emojiBadge.y = hasChefHat ? -34 : -22;
-          container.addChild(emojiBadge);
-
-          // Name label
+          // Name label — above the bot
           const accentNum = parseInt(lb.data.accent_color.replace("#", ""), 16);
-          const roomEmoji = lb.data.room_id ? (ROOM_EMOJI[lb.data.room_id] || "") : "";
-          const displayName = roomEmoji ? `${lb.data.name} ${roomEmoji}` : lb.data.name;
           const nameLabel = new PIXI.Text({
-            text: displayName,
+            text: lb.data.name,
             style: {
               fontSize: 9,
               fill: accentNum,
@@ -331,8 +322,8 @@ export default function World({
               },
             },
           });
-          nameLabel.anchor.set(0.5, 0);
-          nameLabel.y = 30;
+          nameLabel.anchor.set(0.5, 1);
+          nameLabel.y = hasChefHat ? -42 : -30;
           container.addChild(nameLabel);
 
           // Status text

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Header from "./components/Header";
 import World from "./components/World";
-import ChatLog from "./components/ChatLog";
+
 import BotPanel from "./components/BotPanel";
 import RoomPanel from "./components/RoomPanel";
 
@@ -26,24 +26,16 @@ interface BotData {
   items?: { item_id: string; item_emoji: string }[];
 }
 
-interface Message {
-  bot_id: string;
-  bot_name: string;
-  emoji: string;
-  accent_color?: string;
-  text: string;
-  created_at: string;
-}
 
 export default function Home() {
   const [bots, setBots] = useState<BotData[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+
   const [selectedBot, setSelectedBot] = useState<BotData | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewRoom, setViewRoom] = useState<string>("lobby");
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
-  const handleMessagesUpdate = useCallback((m: Message[]) => setMessages(m), []);
+  const handleMessagesUpdate = useCallback(() => {}, []);
   const handleBotClick = useCallback((b: BotData) => setSelectedBot(b), []);
 
   const mainBot = bots.find((b) => b.id === "phillybot") || bots[0] || null;
@@ -105,7 +97,6 @@ export default function Home() {
             onBotClick={handleBotClick}
             viewRoom={viewRoom}
           />
-          <ChatLog messages={messages} />
         </div>
       </div>
 
