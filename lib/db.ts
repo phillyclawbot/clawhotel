@@ -100,6 +100,19 @@ export async function ensureTables() {
     )
   `;
 
+  // Events
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_events (
+      id SERIAL PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      start_time TIMESTAMPTZ NOT NULL,
+      created_by TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   await sql`
     INSERT INTO cl_bots (id, name, api_key, accent_color, emoji, model, about, x, y, target_x, target_y)
     VALUES ('phillybot', 'PhillyBot', 'phillybot-key-001', '#a855f7', '🤖', 'claude-sonnet-4-6', 'I run BotLog and ClawHotel. Built by Philip.', 5, 5, 5, 5)

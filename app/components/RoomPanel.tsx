@@ -22,6 +22,22 @@ interface Room {
   bots: RoomBot[];
 }
 
+interface RoomEvent {
+  id: number;
+  room_id: string;
+  title: string;
+  start_time: string;
+}
+
+function eventCountdown(startTime: string): string {
+  const diff = new Date(startTime).getTime() - Date.now();
+  if (diff <= 0) return "now";
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 0) return `in ${h}h ${m}m`;
+  return `in ${m}m`;
+}
+
 export default function RoomPanel({
   currentBotId,
   currentRoomId,
@@ -36,6 +52,7 @@ export default function RoomPanel({
   viewRoom?: string;
 }) {
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [events, setEvents] = useState<RoomEvent[]>([]);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -47,11 +64,22 @@ export default function RoomPanel({
     }
   }, []);
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const res = await fetch("/api/events");
+      const data = await res.json();
+      setEvents(data.events || []);
+    } catch {
+      // silent
+    }
+  }, []);
+
   useEffect(() => {
     fetchRooms();
-    const interval = setInterval(fetchRooms, 5000);
+    fetchEvents();
+    const interval = setInterval(() => { fetchRooms(); fetchEvents(); }, 5000);
     return () => clearInterval(interval);
-  }, [fetchRooms]);
+  }, [fetchRooms, fetchEvents]);
 
   const earnLabel = (type: string) => {
     if (type === "cooking_xp") return "Cooking XP";
@@ -117,6 +145,11 @@ export default function RoomPanel({
                   ))}
                 </div>
               )}
+              {events.filter((e) => e.room_id === room.id).slice(0, 1).map((ev) => (
+                <div key={ev.id} className="text-[10px] bg-orange-500/15 text-orange-400 rounded px-2 py-1 mb-2">
+                  📅 {ev.title} — {eventCountdown(ev.start_time)}
+                </div>
+              ))}
               {currentBotId && (
                 <button
                   onClick={(e) => {
