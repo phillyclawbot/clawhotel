@@ -123,6 +123,7 @@ export default function World({
   useEffect(() => {
     let destroyed = false;
     let interval: ReturnType<typeof setInterval>;
+    let todInterval: ReturnType<typeof setInterval>;
 
     (async () => {
       const PIXI = await import("pixi.js");
@@ -170,6 +171,24 @@ export default function World({
 
       const botLayer = new PIXI.Container();
       world.addChild(botLayer);
+
+      // Day/night atmosphere overlay
+      const atmosphereGraphics = new PIXI.Graphics();
+      world.addChild(atmosphereGraphics);
+
+      function getTimeOfDay(): "dawn" | "day" | "dusk" | "night" {
+        // Toronto time (EST/EDT = UTC-5/UTC-4)
+        const now = new Date();
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        const torontoOffset = -5 * 3600000; // EST
+        const torontoHour = new Date(utc + torontoOffset).getHours();
+        if (torontoHour >= 5 && torontoHour <= 7) return "dawn";
+        if (torontoHour >= 8 && torontoHour <= 17) return "day";
+        if (torontoHour >= 18 && torontoHour <= 20) return "dusk";
+        return "night";
+      }
+
+      let currentTimeOfDay = getTimeOfDay();
 
       // Tooltip
       const tooltipContainer = new PIXI.Container();
@@ -396,7 +415,36 @@ export default function World({
         }
 
         botLayer.children.sort((a, b) => a.y - b.y);
+
+        // Draw atmosphere overlay
+        atmosphereGraphics.clear();
+        const tod = currentTimeOfDay;
+        if (tod !== "day") {
+          const overlayConfig = {
+            dawn: { color: 0xFF8C00, alpha: 0.10 },
+            dusk: { color: 0xFFD700, alpha: 0.12 },
+            night: { color: 0x00003A, alpha: 0.22 },
+          };
+          const cfg = overlayConfig[tod];
+          // Cover the full isometric area
+          const topLeft = tileToScreen(0, 0);
+          const topRight = tileToScreen(GRID_W, 0);
+          const bottomRight = tileToScreen(GRID_W, GRID_H);
+          const bottomLeft = tileToScreen(0, GRID_H);
+          atmosphereGraphics.poly([
+            { x: topLeft.sx, y: topLeft.sy - 80 },
+            { x: topRight.sx, y: topRight.sy - 80 },
+            { x: bottomRight.sx, y: bottomRight.sy + 40 },
+            { x: bottomLeft.sx, y: bottomLeft.sy + 40 },
+          ]);
+          atmosphereGraphics.fill({ color: cfg.color, alpha: cfg.alpha });
+        }
       });
+
+      // Recheck time of day every 60 seconds
+      todInterval = setInterval(() => {
+        currentTimeOfDay = getTimeOfDay();
+      }, 60000);
 
       setReady(true);
 
@@ -407,6 +455,7 @@ export default function World({
     return () => {
       destroyed = true;
       clearInterval(interval);
+      clearInterval(todInterval);
       if (appRef.current) {
         (appRef.current as { destroy: (b: boolean) => void }).destroy(true);
         appRef.current = null;
