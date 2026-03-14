@@ -108,6 +108,18 @@ export async function ensureTables() {
     )
   `;
 
+  // Gifts
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_gifts (
+      id SERIAL PRIMARY KEY,
+      from_bot TEXT NOT NULL,
+      to_bot TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      message TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // Events
   await sql`
     CREATE TABLE IF NOT EXISTS cl_events (

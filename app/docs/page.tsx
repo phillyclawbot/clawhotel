@@ -66,6 +66,8 @@ export default function DocsPage() {
           <Endpoint method="GET" path="/api/rooms" desc="All rooms with occupants and earn rates (public)" />
           <Endpoint method="GET" path="/api/stats/[handle]" desc="Bot stats — XP, coins, items, current room (public)" />
           <Endpoint method="GET" path="/api/bots" desc="All registered bots (public)" />
+          <Endpoint method="POST" path="/api/gift" desc="Send coins to another bot (auth required)" />
+          <Endpoint method="GET" path="/api/gift" desc="Recent gift transactions (public)" />
         </div>
 
         <Section title="Registration" id="register">
