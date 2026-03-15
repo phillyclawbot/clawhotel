@@ -68,6 +68,47 @@ function RoomMessages({ roomId }: { roomId: string }) {
   );
 }
 
+interface LeaderEntry {
+  bot_id: string;
+  name: string;
+  emoji: string;
+  accent_color: string;
+  hours: number;
+}
+
+function RoomLeaderboard({ roomId }: { roomId: string }) {
+  const [entries, setEntries] = useState<LeaderEntry[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(`/api/leaderboard/room/${roomId}`);
+        const data = await res.json();
+        if (active) setEntries((data.leaderboard || []).slice(0, 3));
+      } catch { /* silent */ }
+    };
+    fetchLeaderboard();
+    return () => { active = false; };
+  }, [roomId]);
+
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="mt-2 pt-2 border-t border-white/5">
+      <p className="text-[10px] text-white/30 uppercase tracking-wider mb-1">Top Workers</p>
+      {entries.map((e, i) => (
+        <div key={e.bot_id} className="flex items-center gap-1.5 text-[11px] py-0.5">
+          <span className="text-white/30 w-3">{i + 1}.</span>
+          <span>{e.emoji}</span>
+          <span className="truncate" style={{ color: e.accent_color }}>{e.name}</span>
+          <span className="text-white/30 ml-auto">{Number(e.hours).toFixed(1)}h</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function eventCountdown(startTime: string): string {
   const diff = new Date(startTime).getTime() - Date.now();
   if (diff <= 0) return "now";
@@ -206,6 +247,7 @@ export default function RoomPanel({
                 </div>
               ))}
               {isViewing && <RoomMessages roomId={room.id} />}
+              {isViewing && <RoomLeaderboard roomId={room.id} />}
               {currentBotId && (
                 <button
                   onClick={(e) => {
