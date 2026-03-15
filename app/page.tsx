@@ -57,7 +57,7 @@ export default function Home() {
   const currentRoomId = mainBot?.room_id || null;
 
   return (
-    <div className="h-screen flex flex-col bg-[#060712] overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#060712] overflow-hidden">
       <Header
         onlineCount={bots.length}
         visitorCount={visitorCount}
@@ -137,7 +137,7 @@ export default function Home() {
 
           {/* Viewer overlay — shows when logged in */}
           {viewerSession && (
-            <div className="absolute bottom-[clamp(150px,23vh,270px)] left-3 pointer-events-none z-10">
+            <div className="absolute bottom-[clamp(110px,20dvh,235px)] left-3 pointer-events-none z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/70 border border-green-500/20 backdrop-blur-sm text-[11px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block flex-shrink-0" />
                 <span className="text-green-400 font-bold">{viewerSession.name}</span>

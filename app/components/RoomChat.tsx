@@ -51,7 +51,7 @@ export default function RoomChat({ roomId }: { roomId: string }) {
   }, [messages]);
 
   return (
-    <div className="bg-[#060712]/90 backdrop-blur-sm border-t border-white/5 flex flex-col" style={{ height: "clamp(140px, 22vh, 260px)" }}>
+    <div className="bg-[#060712]/90 backdrop-blur-sm border-t border-white/5 flex flex-col" style={{ height: "clamp(100px, 18dvh, 220px)" }}>
       <div className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 flex-shrink-0">
         <span className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Room Chat</span>
         <span className="text-[10px] text-white/15">{messages.length} messages</span>
