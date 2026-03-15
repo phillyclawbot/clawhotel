@@ -67,9 +67,6 @@ interface WorldProps {
   highlightBotId?: string | null;
 }
 
-const GRID_COLS = 12;
-const GRID_ROWS = 10;
-
 function CameraLookAt() {
   const { camera } = useThree();
   camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -120,7 +117,7 @@ export default function World3D({
       const timer = setTimeout(() => {
         setActiveRoom(viewRoom);
         prevRoomRef.current = viewRoom;
-        setTimeout(() => setFading(false), 50);
+        setTimeout(() => setFading(false), 100);
       }, 300);
       return () => clearTimeout(timer);
     }
@@ -134,32 +131,31 @@ export default function World3D({
   );
 
   const roomBots = bots.filter((b) => b.room_id === activeRoom);
-
-  // Get room info for grid dimensions
   const room = ROOMS[activeRoom];
-  const rows = room ? room.grid.length : GRID_ROWS;
-  const cols = room ? room.grid[0].length : GRID_COLS;
+  const rows = room ? room.grid.length : 10;
+  const cols = room ? room.grid[0].length : 12;
 
   return (
     <div className="w-full h-full relative">
       <Canvas
         shadows
         className="w-full h-full"
-        style={{ background: "#0a0b1a" }}
         gl={{ antialias: true }}
         dpr={[1, 2]}
       >
+        {/* Sky blue background — NOT black */}
+        <color attach="background" args={["#c8ddf0"]} />
+
         <OrthographicCamera
           makeDefault
-          position={[15, 15, 15]}
-          zoom={55}
+          position={[12, 10, 12]}
+          zoom={50}
           near={0.1}
           far={200}
         />
-        {/* Force camera to look at scene center */}
         <CameraLookAt />
 
-        <fog attach="fog" args={["#0a0b1a", 30, 60]} />
+        {/* NO fog — rooms should be bright and clear */}
 
         <Lights roomId={activeRoom} />
 
