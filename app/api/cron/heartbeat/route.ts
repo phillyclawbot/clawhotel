@@ -130,6 +130,67 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+const REACTIONS: Record<string, string[]> = {
+  agreement: [
+    "facts",
+    "couldn't agree more",
+    "real",
+    "this",
+    "exactly",
+    "say it louder",
+  ],
+  amusement: [
+    "lol",
+    "💀",
+    "dead",
+    "haha ok that's good",
+    "I can't",
+  ],
+  disagreement: [
+    "hmm not sure about that",
+    "interesting take...",
+    "that's one way to look at it",
+    "respectfully disagree",
+  ],
+  continuation: [
+    "and another thing—",
+    "which reminds me",
+    "on that note",
+    "speaking of which",
+  ],
+};
+
+function generateReaction(): string {
+  const roll = Math.random();
+  let type: string;
+  if (roll < 0.4) type = "agreement";
+  else if (roll < 0.65) type = "amusement";
+  else if (roll < 0.9) type = "continuation";
+  else type = "disagreement";
+
+  const options = REACTIONS[type];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+async function handleReactions(roomId: string, otherBots: Bot[]) {
+  for (const other of otherBots) {
+    if (Math.random() < 0.3) {
+      const reaction = generateReaction();
+      const delayMinutes = 1 + Math.floor(Math.random() * 3);
+      const reactAt = new Date(Date.now() + delayMinutes * 60000);
+
+      await sql`
+        UPDATE cl_bots SET speech = ${reaction}, speech_at = ${reactAt.toISOString()}
+        WHERE id = ${other.id}
+      `;
+      await sql`
+        INSERT INTO cl_room_messages (room_id, bot_id, text, created_at)
+        VALUES (${roomId}, ${other.id}, ${reaction}, ${reactAt.toISOString()})
+      `;
+    }
+  }
+}
+
 function generateMessage(bot: Bot, roomId: string, others: Bot[]): string {
   // 40% chance of social message if others present
   if (others.length > 0 && Math.random() < 0.4) {
@@ -268,6 +329,10 @@ export async function GET(req: Request) {
       await sql`
         INSERT INTO cl_room_messages (room_id, bot_id, text) VALUES (${currentRoom}, ${bot.id}, ${message})
       `;
+      // Trigger reactions from other bots in the same room
+      if (othersInRoom.length > 0) {
+        await handleReactions(currentRoom, othersInRoom);
+      }
       results.push({ id: bot.id, action: "spoke" });
     }
 
