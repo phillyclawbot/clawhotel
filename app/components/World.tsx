@@ -57,6 +57,7 @@ interface LocalBot {
   y: number;
   targetX: number;
   targetY: number;
+  prevRoomId: string;
 }
 
 const GRID_W = 12;
@@ -124,6 +125,15 @@ export default function World({
         seen.add(b.id);
         const existing = map.get(b.id);
         if (existing) {
+          // Detect room change — start at door position
+          const newRoom = b.room_id || "lobby";
+          if (existing.prevRoomId !== newRoom) {
+            const { ROOMS } = await import("@/lib/rooms");
+            const roomDef = ROOMS[newRoom] || ROOMS.lobby;
+            existing.x = roomDef.doorPos.x;
+            existing.y = roomDef.doorPos.y;
+            existing.prevRoomId = newRoom;
+          }
           existing.data = b;
           existing.targetX = b.target_x;
           existing.targetY = b.target_y;
@@ -134,6 +144,7 @@ export default function World({
             y: b.y,
             targetX: b.target_x,
             targetY: b.target_y,
+            prevRoomId: b.room_id || "lobby",
           });
         }
       }
@@ -382,17 +393,31 @@ export default function World({
           lb.targetX = workPos.x + botIndex * 1.2;
           lb.targetY = workPos.y + botIndex * 0.5;
 
-          lb.x += (lb.targetX - lb.x) * 0.08;
-          lb.y += (lb.targetY - lb.y) * 0.08;
+          // Smooth lerp at 0.03 for deliberate walking
+          lb.x += (lb.targetX - lb.x) * 0.03;
+          lb.y += (lb.targetY - lb.y) * 0.03;
+          // Snap when close
+          if (Math.abs(lb.targetX - lb.x) < 0.05 && Math.abs(lb.targetY - lb.y) < 0.05) {
+            lb.x = lb.targetX;
+            lb.y = lb.targetY;
+          }
 
-          const isMoving = Math.abs(lb.targetX - lb.x) > 0.05 || Math.abs(lb.targetY - lb.y) > 0.05;
+          const isMoving = Math.abs(lb.targetX - lb.x) > 0.1 || Math.abs(lb.targetY - lb.y) > 0.1;
           const { sx, sy } = tileToScreen(lb.x, lb.y);
 
           const progress = isMoving ? (frameCount % 60) / 60 : 0;
-          const bounce = isMoving ? Math.sin(frameCount * 0.15) * 2 : 0;
+          // Walking bounce: faster, more pronounced. Idle: subtle
+          const bounce = isMoving
+            ? Math.sin(frameCount * 0.12) * 2.5
+            : Math.sin(frameCount * 0.05) * 1;
           const container = new PIXI.Container();
           container.x = sx;
           container.y = sy - bounce;
+
+          // Flip bot horizontally when walking left
+          if (isMoving && lb.targetX < lb.x) {
+            container.scale.x = -1;
+          }
           container.eventMode = "static";
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));

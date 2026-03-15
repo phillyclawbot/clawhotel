@@ -36,6 +36,8 @@ export interface RoomDef {
   ambientLight?: number;   // overlay tint color (hex)
   /** Where a working bot stands (behind the main workstation) */
   workPos: { x: number; y: number };
+  /** Where bots enter the room from */
+  doorPos: { x: number; y: number };
   floor?: number; // 1 or 2 (default 1)
   noWalls?: boolean; // rooftop has no walls
   unlockLevel?: number; // minimum bot level to enter
@@ -81,6 +83,7 @@ export const ROOMS: Record<string, RoomDef> = {
       ...getSeasonalDecorations() as FurnitureItem[],
     ],
     workPos: { x: 5, y: 2 }, // behind reception counter
+    doorPos: { x: 0, y: 5 },
   },
 
   kitchen: {
@@ -111,6 +114,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "kchair2", type: "chair", tileX: 9, tileY: 6, label: "Chair", action: "sit" },
     ],
     workPos: { x: 3, y: 2 }, // behind the prep counter, facing the stoves
+    doorPos: { x: 0, y: 5 },
   },
 
   dancefloor: {
@@ -140,6 +144,7 @@ export const ROOMS: Record<string, RoomDef> = {
     ],
     ambientLight: 0x110022,
     workPos: { x: 5.5, y: 2 }, // behind the DJ booth, center stage
+    doorPos: { x: 0, y: 5 },
   },
 
   store: {
@@ -168,6 +173,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "baskets1", type: "basket_pile", tileX: 10, tileY: 8, label: "Baskets", action: "chill" },
     ],
     workPos: { x: 9, y: 2 }, // behind the checkout counter
+    doorPos: { x: 0, y: 5 },
   },
 
   bar: {
@@ -199,6 +205,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "bchair2", type: "chair", tileX: 5, tileY: 6, label: "Chair", action: "sit" },
     ],
     workPos: { x: 5, y: 0.5 },
+    doorPos: { x: 0, y: 5 },
   },
 
   studio: {
@@ -226,6 +233,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "schair2", type: "chair", tileX: 7, tileY: 7, label: "Chair", action: "sit" },
     ],
     workPos: { x: 5, y: 4 },
+    doorPos: { x: 0, y: 5 },
   },
 
   bank: {
@@ -254,6 +262,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "bkchair2", type: "chair", tileX: 6, tileY: 7, label: "Chair", action: "sit" },
     ],
     workPos: { x: 5, y: 0.5 },
+    doorPos: { x: 0, y: 5 },
   },
 
   gym: {
@@ -280,6 +289,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "gchair2", type: "chair", tileX: 4, tileY: 7, label: "Bench", action: "sit" },
     ],
     workPos: { x: 5, y: 3 },
+    doorPos: { x: 0, y: 5 },
   },
 
   // ---- Floor 2 ----
@@ -311,6 +321,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "lplant1", type: "plant", tileX: 11, tileY: 1, label: "Fern", action: "water" },
     ],
     workPos: { x: 5, y: 4 },
+    doorPos: { x: 0, y: 5 },
   },
 
   casino: {
@@ -342,6 +353,7 @@ export const ROOMS: Record<string, RoomDef> = {
     ],
     ambientLight: 0x220000,
     workPos: { x: 5, y: 3 },
+    doorPos: { x: 0, y: 5 },
   },
 
   theater: {
@@ -375,6 +387,7 @@ export const ROOMS: Record<string, RoomDef> = {
     ],
     ambientLight: 0x110011,
     workPos: { x: 5, y: 2 },
+    doorPos: { x: 0, y: 5 },
   },
 
   rooftop: {
@@ -404,6 +417,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "rtable1", type: "table", tileX: 6, tileY: 5, label: "Table", action: "chill" },
     ],
     workPos: { x: 6, y: 5 },
+    doorPos: { x: 0, y: 5 },
   },
 
   phillybot_lair: {
@@ -418,6 +432,7 @@ export const ROOMS: Record<string, RoomDef> = {
     wallColorTop: 0x0f0518,
     floorStyle: "checker",
     workPos: { x: 5, y: 4 },
+    doorPos: { x: 0, y: 5 },
     owner: "phillybot",
     earn_type: "build_xp",
     earn_rate: 20,
