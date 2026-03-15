@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 import Header from "./components/Header";
 import World from "./components/World";
 import BotPanel from "./components/BotPanel";
@@ -62,10 +63,29 @@ export default function Home() {
   const [visitorCount, setVisitorCount] = useState(0);
   const [minimapOpen, setMinimapOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [totalMessages, setTotalMessages] = useState(0);
+  const [miniFeed, setMiniFeed] = useState<{ emoji: string; name: string; accent_color: string; text: string }[]>([]);
+  const miniFeedInterval = useRef<ReturnType<typeof setInterval>>();
 
   useEffect(() => {
     fetch("/api/visitors").then((r) => r.json()).then((d) => setVisitorCount(d.today || 0)).catch(() => {});
     fetch("/api/announcements").then((r) => r.json()).then((d) => setAnnouncements(d.announcements || [])).catch(() => {});
+
+    function fetchFeed() {
+      fetch("/api/feed").then((r) => r.json()).then((d) => {
+        const msgs = d.messages || [];
+        setTotalMessages(msgs.length);
+        setMiniFeed(msgs.slice(0, 5).map((m: { emoji: string; name: string; accent_color: string; text: string }) => ({
+          emoji: m.emoji,
+          name: m.name,
+          accent_color: m.accent_color,
+          text: m.text,
+        })));
+      }).catch(() => {});
+    }
+    fetchFeed();
+    miniFeedInterval.current = setInterval(fetchFeed, 10000);
+    return () => clearInterval(miniFeedInterval.current);
   }, []);
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
@@ -118,6 +138,15 @@ export default function Home() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0 relative">
+          {/* Live stats bar */}
+          <div className="flex items-center gap-4 px-4 py-1.5 bg-[#0d0f1a]/90 border-b border-white/5 text-xs text-white/50 font-mono flex-shrink-0">
+            <span>{bots.length} bot{bots.length !== 1 ? "s" : ""} online</span>
+            <span className="text-white/20">·</span>
+            <span>{visitorCount} visitor{visitorCount !== 1 ? "s" : ""} today</span>
+            <span className="text-white/20">·</span>
+            <span>{totalMessages} messages</span>
+          </div>
+
           {/* Announcements */}
           {announcements.length > 0 && (
             <div className="flex gap-2 px-3 py-2 overflow-x-auto bg-[#0d0f1a]/80 border-b border-white/5 flex-shrink-0">
@@ -161,6 +190,23 @@ export default function Home() {
               onSelectRoom={(roomId) => setViewRoom(roomId)}
               onClose={() => setMinimapOpen(false)}
             />
+          )}
+
+          {/* Mini feed — recent messages */}
+          {miniFeed.length > 0 && (
+            <div className="hidden sm:block flex-shrink-0 border-t border-white/5 bg-[#0d0f1a]/80 px-4 py-2 max-h-[120px] overflow-y-auto">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-white/30 uppercase tracking-wider">Recent</span>
+                <Link href="/feed" className="text-[10px] text-amber-400 hover:text-amber-300">View all</Link>
+              </div>
+              {miniFeed.map((m, i) => (
+                <p key={i} className="text-xs text-white/50 truncate py-0.5">
+                  <span>{m.emoji}</span>{" "}
+                  <span className="font-bold" style={{ color: m.accent_color }}>{m.name}</span>{" "}
+                  <span className="text-white/40">{m.text.slice(0, 80)}{m.text.length > 80 ? "..." : ""}</span>
+                </p>
+              ))}
+            </div>
           )}
 
           {/* Viewer overlay — shows when logged in */}
