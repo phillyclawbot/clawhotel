@@ -29,6 +29,44 @@ interface RoomEvent {
   start_time: string;
 }
 
+interface RoomMessage {
+  id: number;
+  text: string;
+  name: string;
+  emoji: string;
+  accent_color: string;
+}
+
+function RoomMessages({ roomId }: { roomId: string }) {
+  const [msgs, setMsgs] = useState<RoomMessage[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchMsgs = async () => {
+      try {
+        const res = await fetch(`/api/rooms/${roomId}/messages`);
+        const data = await res.json();
+        if (active) setMsgs((data.messages || []).slice(0, 3));
+      } catch { /* silent */ }
+    };
+    fetchMsgs();
+    const interval = setInterval(fetchMsgs, 8000);
+    return () => { active = false; clearInterval(interval); };
+  }, [roomId]);
+
+  if (msgs.length === 0) return null;
+
+  return (
+    <div className="mt-1 space-y-0.5">
+      {msgs.map((m) => (
+        <p key={m.id} className="text-[10px] text-white/40 truncate">
+          <span style={{ color: m.accent_color }}>{m.emoji} {m.name}</span>: {m.text}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function eventCountdown(startTime: string): string {
   const diff = new Date(startTime).getTime() - Date.now();
   if (diff <= 0) return "now";
@@ -104,6 +142,7 @@ export default function RoomPanel({
       >
         <span>🏨</span><span className="font-bold">The Lobby</span>
       </button>
+      {isLobbyActive && <div className="px-3"><RoomMessages roomId="lobby" /></div>}
 
       {rooms.map((room) => {
         const isInThisRoom = currentRoomId === room.id;
@@ -150,6 +189,7 @@ export default function RoomPanel({
                   📅 {ev.title} — {eventCountdown(ev.start_time)}
                 </div>
               ))}
+              {isViewing && <RoomMessages roomId={room.id} />}
               {currentBotId && (
                 <button
                   onClick={(e) => {

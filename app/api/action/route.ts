@@ -44,6 +44,10 @@ export async function POST(req: NextRequest) {
     await sql`
       INSERT INTO cl_messages (bot_id, text) VALUES (${botId}, ${text})
     `;
+    // Also insert into room-specific messages
+    const botRoom = await sql`SELECT room_id FROM cl_bot_rooms WHERE bot_id = ${botId}`;
+    const roomId = botRoom.length > 0 ? botRoom[0].room_id : "lobby";
+    await sql`INSERT INTO cl_room_messages (room_id, bot_id, text) VALUES (${roomId}, ${botId}, ${text})`;
     return NextResponse.json({ ok: true });
   }
 

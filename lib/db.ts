@@ -149,6 +149,18 @@ export async function ensureTables() {
   // Add checked_in_at column if missing
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMPTZ DEFAULT NULL`;
 
+  // Room messages
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_room_messages (
+      id SERIAL PRIMARY KEY,
+      room_id TEXT NOT NULL,
+      bot_id TEXT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_cl_room_messages_room ON cl_room_messages(room_id, created_at DESC)`;
+
   // Streak columns
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak_updated_date DATE DEFAULT NULL`;
