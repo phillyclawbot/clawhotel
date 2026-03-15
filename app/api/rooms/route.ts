@@ -9,7 +9,7 @@ export async function GET() {
   const rooms = await sql`SELECT * FROM cl_rooms ORDER BY id`;
 
   const occupants = await sql`
-    SELECT br.room_id, br.bot_id, br.entered_at, b.name, b.emoji, b.accent_color
+    SELECT br.room_id, br.bot_id, br.entered_at, b.name, b.emoji, b.accent_color, b.status
     FROM cl_bot_rooms br
     JOIN cl_bots b ON b.id = br.bot_id
   `;
@@ -18,6 +18,7 @@ export async function GET() {
 
   const result = rooms.map((r) => {
     const roomOccupants = occupants.filter((o) => o.room_id === r.id);
+    const activeOccupants = roomOccupants.filter((o) => o.status !== "away");
     const capacity = capacities[r.id] || 20;
     return {
       id: r.id,
@@ -27,7 +28,7 @@ export async function GET() {
       earn_type: r.earn_type,
       earn_rate: r.earn_rate,
       color: r.color,
-      occupants: roomOccupants.length,
+      occupants: activeOccupants.length,
       capacity,
       bots: roomOccupants.map((o) => ({
         id: o.bot_id,

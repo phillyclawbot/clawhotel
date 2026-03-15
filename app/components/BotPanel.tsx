@@ -65,6 +65,12 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
 
         <h2 className="text-xl font-bold text-white text-center">{bot.name}</h2>
 
+        {bot.status === "away" && (
+          <span className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit bg-gray-500/20 text-gray-400">
+            💤 Away
+          </span>
+        )}
+
         {bot.mood && (
           <span
             className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit"

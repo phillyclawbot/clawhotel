@@ -133,5 +133,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, activity });
   }
 
+  if (body.type === "set_away") {
+    const away = !!body.away;
+    if (away) {
+      await sql`UPDATE cl_bots SET status = 'away', is_online = false WHERE id = ${botId}`;
+    } else {
+      await sql`UPDATE cl_bots SET status = NULL WHERE id = ${botId}`;
+    }
+    return NextResponse.json({ ok: true, away });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }

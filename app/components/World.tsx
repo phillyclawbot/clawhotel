@@ -345,6 +345,12 @@ export default function World({
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));
 
+          // Away mode: semi-transparent
+          const isAway = lb.data.status === "away";
+          if (isAway) {
+            container.alpha = 0.4;
+          }
+
           // Mood aura
           if (lb.data.mood) {
             const moodColors: Record<string, number> = {
@@ -410,8 +416,19 @@ export default function World({
             container.addChild(streakText);
           }
 
+          // Away sleep emoji
+          if (isAway) {
+            const sleepText = new PIXI.Text({
+              text: "💤",
+              style: { fontSize: 10 },
+            });
+            sleepText.anchor.set(0.5, 1);
+            sleepText.y = hasChefHat ? -50 : -38;
+            container.addChild(sleepText);
+          }
+
           // Status text
-          if (lb.data.status) {
+          if (lb.data.status && !isAway) {
             const statusText = new PIXI.Text({
               text: lb.data.status,
               style: { fontSize: 8, fill: 0x888888, fontFamily: "monospace", fontStyle: "italic" },
