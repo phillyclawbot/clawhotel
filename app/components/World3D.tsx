@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrthographicCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { Suspense } from "react";
@@ -67,19 +67,20 @@ interface WorldProps {
   highlightBotId?: string | null;
 }
 
-function CameraController({ zoom, cols, rows }: { zoom: number; cols: number; rows: number }) {
+function CameraController({ zoom }: { zoom: number }) {
   const { camera } = useThree();
-  // Center camera on the room — offset accounts for grid centering in Room3D
-  const centerX = 0;
-  const centerZ = 0;
-  useEffect(() => {
+  const targetZoom = useRef(zoom);
+  targetZoom.current = zoom;
+
+  useFrame(() => {
     if (camera instanceof THREE.OrthographicCamera) {
-      camera.zoom = zoom;
-      camera.position.set(centerX + 12, 10, centerZ + 12);
-      camera.lookAt(new THREE.Vector3(centerX, 0, centerZ));
+      // Smoothly lerp zoom
+      camera.zoom += (targetZoom.current - camera.zoom) * 0.1;
+      camera.lookAt(0, 0, 0);
       camera.updateProjectionMatrix();
     }
-  }, [camera, zoom, cols, rows]);
+  });
+
   return null;
 }
 
@@ -180,7 +181,7 @@ export default function World3D({
           near={0.1}
           far={200}
         />
-        <CameraController zoom={zoom} cols={cols} rows={rows} />
+        <CameraController zoom={zoom} />
 
         {/* NO fog — rooms should be bright and clear */}
 
