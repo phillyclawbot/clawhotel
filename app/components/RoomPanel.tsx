@@ -118,6 +118,17 @@ function eventCountdown(startTime: string): string {
   return `in ${m}m`;
 }
 
+interface BotRoom {
+  bot_id: string;
+  room_id: string;
+  room_name: string;
+  accent_color: string;
+  emoji: string;
+  bot_name: string;
+  is_online: boolean;
+  is_home: boolean;
+}
+
 export default function RoomPanel({
   currentBotId,
   currentRoomId,
@@ -133,6 +144,7 @@ export default function RoomPanel({
 }) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [events, setEvents] = useState<RoomEvent[]>([]);
+  const [botRooms, setBotRooms] = useState<BotRoom[]>([]);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -154,12 +166,23 @@ export default function RoomPanel({
     }
   }, []);
 
+  const fetchBotRooms = useCallback(async () => {
+    try {
+      const res = await fetch("/api/rooms/personal");
+      const data = await res.json();
+      setBotRooms(data.rooms || []);
+    } catch {
+      // silent
+    }
+  }, []);
+
   useEffect(() => {
     fetchRooms();
     fetchEvents();
-    const interval = setInterval(() => { fetchRooms(); fetchEvents(); }, 5000);
+    fetchBotRooms();
+    const interval = setInterval(() => { fetchRooms(); fetchEvents(); fetchBotRooms(); }, 5000);
     return () => clearInterval(interval);
-  }, [fetchRooms, fetchEvents]);
+  }, [fetchRooms, fetchEvents, fetchBotRooms]);
 
   const [activeFloor, setActiveFloor] = useState(1);
   const [privateMsg, setPrivateMsg] = useState("");
@@ -315,6 +338,37 @@ export default function RoomPanel({
           </div>
         );
       })}
+
+      {/* Bot Rooms */}
+      {botRooms.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-white/10">
+          <p className="text-[10px] text-amber-500 uppercase tracking-wider mb-2 font-bold">🏠 BOT ROOMS</p>
+          {botRooms.map((br) => {
+            const isViewing = viewRoom === br.room_id;
+            return (
+              <button
+                key={br.bot_id}
+                onClick={() => { onViewRoom?.(br.room_id); onRoomChange(); }}
+                className="w-full text-left text-xs py-1.5 px-3 rounded transition-all flex items-center gap-2 mb-0.5"
+                style={{
+                  backgroundColor: isViewing ? br.accent_color + "25" : "transparent",
+                  color: isViewing ? "#fff" : "rgba(255,255,255,0.4)",
+                  borderLeft: isViewing ? `3px solid ${br.accent_color}` : "3px solid transparent",
+                }}
+              >
+                <span>{br.emoji}</span>
+                <span className="truncate font-bold">{br.room_name}</span>
+                {br.is_online && br.is_home && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" title="Home" />
+                )}
+                {br.is_online && !br.is_home && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-yellow-500 flex-shrink-0" title="Online" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Private rooms */}
       <div className="mt-4 pt-3 border-t border-white/10">

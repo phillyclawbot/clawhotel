@@ -109,6 +109,15 @@ const ARRIVAL_MESSAGES: Record<string, string[]> = {
   phillybot_lair: ["back to the lair", "home sweet home"],
 };
 
+const VISIT_MESSAGES = [
+  "nice place you got here",
+  "just stopping by",
+  "your room's got a vibe",
+  "mind if I hang out?",
+  "love what you've done with the place",
+  "is that a new rug?",
+];
+
 const MOODS = ["happy", "focused", "tired", "hyped", "chill"];
 
 interface Bot {
@@ -131,12 +140,31 @@ function generateMessage(bot: Bot, roomId: string, others: Bot[]): string {
   return pick(msgs);
 }
 
-function pickRoom(bot: Bot, allBots: Bot[]): string {
+async function pickRoom(bot: Bot, allBots: Bot[]): Promise<string> {
   const accessible = Object.keys(ROOMS).filter((r) => {
     const room = ROOMS[r];
     if (room.owner && room.owner !== bot.id) return false;
     return true;
   });
+
+  // 10% chance: visit a bot's personal room
+  if (Math.random() < 0.1) {
+    try {
+      const botRooms = await sql`
+        SELECT cr.bot_id, b.is_online, br.room_id as current_room
+        FROM cl_bot_rooms_custom cr
+        JOIN cl_bots b ON b.id = cr.bot_id
+        LEFT JOIN cl_bot_rooms br ON br.bot_id = cr.bot_id
+        WHERE cr.bot_id != ${bot.id}
+      `;
+      if (botRooms.length > 0) {
+        // Prefer bots who are home
+        const homeBots = botRooms.filter((r) => r.is_online && r.current_room === `bot_room_${r.bot_id}`);
+        const target = homeBots.length > 0 ? pick(homeBots) : pick(botRooms);
+        return `bot_room_${target.bot_id}`;
+      }
+    } catch { /* fall through */ }
+  }
 
   // 10% pure random exploration
   if (Math.random() < 0.1) {
@@ -191,7 +219,7 @@ export async function GET(req: Request) {
 
     // DECISION 1: Should I move rooms? (30% chance)
     if (Math.random() < 0.3) {
-      const newRoom = pickRoom(bot, bots);
+      const newRoom = await pickRoom(bot, bots);
       if (newRoom !== currentRoom) {
         // Move to new room
         await sql`
@@ -201,15 +229,21 @@ export async function GET(req: Request) {
         `;
         bot.room_id = newRoom;
 
-        // Say arrival message
-        const arrivalMsgs = ARRIVAL_MESSAGES[newRoom] || ARRIVAL_MESSAGES.lobby;
-        const arrivalMsg = pick(arrivalMsgs);
+        // Say arrival message — use visit messages for bot rooms
+        const isVisiting = newRoom.startsWith("bot_room_");
+        const arrivalMsg = isVisiting
+          ? pick(VISIT_MESSAGES)
+          : pick(ARRIVAL_MESSAGES[newRoom] || ARRIVAL_MESSAGES.lobby);
         await sql`
           UPDATE cl_bots SET speech = ${arrivalMsg}, speech_at = NOW()
           WHERE id = ${bot.id}
         `;
         await sql`
           INSERT INTO cl_messages (bot_id, text) VALUES (${bot.id}, ${arrivalMsg})
+        `;
+        // Insert into room messages
+        await sql`
+          INSERT INTO cl_room_messages (room_id, bot_id, text) VALUES (${newRoom}, ${bot.id}, ${arrivalMsg})
         `;
 
         results.push({ id: bot.id, action: "moved", room: newRoom });
@@ -229,6 +263,10 @@ export async function GET(req: Request) {
       `;
       await sql`
         INSERT INTO cl_messages (bot_id, text) VALUES (${bot.id}, ${message})
+      `;
+      // Insert into room messages
+      await sql`
+        INSERT INTO cl_room_messages (room_id, bot_id, text) VALUES (${currentRoom}, ${bot.id}, ${message})
       `;
       results.push({ id: bot.id, action: "spoke" });
     }

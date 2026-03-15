@@ -87,9 +87,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "unknown room" }, { status: 400 });
     }
 
-    // Check private room access
+    // Check private room access (bot_room_* rooms are open to all visitors)
     const roomDef = ROOMS[roomId];
-    if (roomDef?.owner && roomDef.owner !== botId) {
+    if (roomDef?.owner && roomDef.owner !== botId && !roomId.startsWith("bot_room_")) {
       return NextResponse.json({ error: "Private room" }, { status: 403 });
     }
 

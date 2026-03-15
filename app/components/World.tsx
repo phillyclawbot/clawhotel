@@ -103,6 +103,7 @@ export default function World({
   const currentRoomRef = useRef<string>(viewRoom);
   const crowdRatioRef = useRef<number>(0);
   const placedFurnitureRef = useRef<{ pixi_type: string; tile_x: number; tile_y: number }[]>([]);
+  const botRoomCacheRef = useRef<Map<string, { accent_color: string; room_name: string; emoji: string; bot_id: string }>>(new Map());
   const [ready, setReady] = useState(false);
 
   // Keep ref in sync
@@ -128,8 +129,14 @@ export default function World({
           // Detect room change — start at door position
           const newRoom = b.room_id || "lobby";
           if (existing.prevRoomId !== newRoom) {
-            const { ROOMS } = await import("@/lib/rooms");
-            const roomDef = ROOMS[newRoom] || ROOMS.lobby;
+            const { ROOMS, generateBotRoom } = await import("@/lib/rooms");
+            let roomDef = ROOMS[newRoom] || ROOMS.lobby;
+            if (newRoom.startsWith("bot_room_")) {
+              const cached = botRoomCacheRef.current.get(newRoom);
+              if (cached) {
+                roomDef = generateBotRoom(cached.bot_id, { bot_id: cached.bot_id, room_name: cached.room_name, description: null, accent_color: cached.accent_color }, cached.emoji);
+              }
+            }
             existing.x = roomDef.doorPos.x;
             existing.y = roomDef.doorPos.y;
             existing.prevRoomId = newRoom;
@@ -180,6 +187,23 @@ export default function World({
           tile_y: f.tile_y,
         }));
       } catch { /* silent */ }
+
+      // Fetch bot room data if viewing a personal room
+      try {
+        const viewedRoom = currentRoomRef.current;
+        if (viewedRoom.startsWith("bot_room_") && !botRoomCacheRef.current.has(viewedRoom)) {
+          const res = await fetch("/api/rooms/personal");
+          const data = await res.json();
+          for (const r of (data.rooms || [])) {
+            botRoomCacheRef.current.set(r.room_id, {
+              accent_color: r.accent_color,
+              room_name: r.room_name,
+              emoji: r.emoji,
+              bot_id: r.bot_id,
+            });
+          }
+        }
+      } catch { /* silent */ }
     } catch {
       // silent fail on poll
     }
@@ -192,9 +216,9 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
-      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat, drawRooftopSky, drawPhillybotLair } = await import("@/lib/pixel");
+      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat, drawRooftopSky, drawPhillybotLair, drawBotRoomFurniture, drawRoomAmbient } = await import("@/lib/pixel");
       const { drawOutfit } = await import("@/lib/clothing");
-      const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
+      const { ROOMS, furnitureEmoji, generateBotRoom } = await import("@/lib/rooms");
       const { getCurrentSeason, SEASON_CONFIG } = await import("@/lib/season");
       const { TITLES } = await import("@/lib/titles");
 
@@ -270,8 +294,25 @@ export default function World({
 
       let lastDrawnRoom = "";
 
+      function resolveRoom(roomId: string) {
+        if (ROOMS[roomId]) return ROOMS[roomId];
+        // Dynamic bot room
+        if (roomId.startsWith("bot_room_")) {
+          const cached = botRoomCacheRef.current.get(roomId);
+          if (cached) {
+            return generateBotRoom(cached.bot_id, {
+              bot_id: cached.bot_id,
+              room_name: cached.room_name,
+              description: null,
+              accent_color: cached.accent_color,
+            }, cached.emoji);
+          }
+        }
+        return ROOMS.lobby;
+      }
+
       function drawScene(roomId: string) {
-        const room = ROOMS[roomId] || ROOMS.lobby;
+        const room = resolveRoom(roomId);
 
         wallsGraphics.clear();
         if (room.noWalls) {
@@ -315,7 +356,7 @@ export default function World({
         }
 
         // Redraw floor every frame for disco, every 10 frames otherwise
-        const activeRoom = ROOMS[lastDrawnRoom] || ROOMS.lobby;
+        const activeRoom = resolveRoom(lastDrawnRoom);
         const needsFloorRedraw = activeRoom.floorStyle === "disco" || frameCount % 10 === 0;
         if (needsFloorRedraw) {
           floorGraphics.clear();
@@ -373,6 +414,15 @@ export default function World({
           drawPhillybotLair(fGfx, frameCount, tileToScreen);
         }
 
+        // Draw personal bot room furniture
+        if (lastDrawnRoom.startsWith("bot_room_")) {
+          const cached = botRoomCacheRef.current.get(lastDrawnRoom);
+          if (cached) {
+            const accentNum = parseInt(cached.accent_color.replace("#", ""), 16);
+            drawBotRoomFurniture(fGfx, accentNum, frameCount, tileToScreen);
+          }
+        }
+
         // Draw bots — filtered to current room
         botLayer.removeChildren();
 
@@ -387,7 +437,7 @@ export default function World({
 
           // Snap bot to their room's work position (behind the counter/booth/stove)
           // Offset slightly per bot so multiple bots don't perfectly overlap
-          const roomDef = ROOMS[botRoom] || ROOMS.lobby;
+          const roomDef = resolveRoom(botRoom);
           const workPos = roomDef.workPos;
           const botIndex = entries.filter((e) => (e.data.room_id || "lobby") === botRoom).indexOf(lb);
           lb.targetX = workPos.x + botIndex * 1.2;
