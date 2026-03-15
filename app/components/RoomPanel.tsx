@@ -161,20 +161,59 @@ export default function RoomPanel({
     return () => clearInterval(interval);
   }, [fetchRooms, fetchEvents]);
 
+  const [activeFloor, setActiveFloor] = useState(1);
+
   const earnLabel = (type: string) => {
     if (type === "cooking_xp") return "Cooking XP";
     if (type === "dj_xp") return "DJ XP";
     if (type === "bartending_xp") return "Bartending XP";
     if (type === "art_xp") return "Art XP";
     if (type === "strength_xp") return "Strength XP";
+    if (type === "knowledge_xp") return "Knowledge XP";
+    if (type === "performance_xp") return "Performance XP";
     return "Coins";
   };
+
+  const floor1Ids = new Set(["kitchen", "dancefloor", "store", "bar", "studio", "bank", "gym"]);
+  const floor2Ids = new Set(["library", "casino", "theater", "rooftop"]);
+  const floor2Levels: Record<string, number> = { library: 5, rooftop: 10 };
+
+  const filteredRooms = rooms.filter((r) => {
+    if (activeFloor === 1) return floor1Ids.has(r.id);
+    return floor2Ids.has(r.id);
+  });
 
   const isLobbyActive = !viewRoom || viewRoom === "lobby";
 
   return (
     <div className="w-full flex flex-col gap-2 p-3">
       <h3 className="text-white/60 text-xs font-mono uppercase tracking-wider mb-1">Rooms</h3>
+
+      {/* Floor tabs */}
+      <div className="flex gap-1 mb-1">
+        <button
+          onClick={() => setActiveFloor(1)}
+          className="flex-1 text-xs py-1.5 rounded font-bold transition-all"
+          style={{
+            backgroundColor: activeFloor === 1 ? "rgba(245,158,11,0.25)" : "rgba(255,255,255,0.05)",
+            color: activeFloor === 1 ? "#f59e0b" : "rgba(255,255,255,0.4)",
+            borderBottom: activeFloor === 1 ? "2px solid #f59e0b" : "2px solid transparent",
+          }}
+        >
+          Floor 1
+        </button>
+        <button
+          onClick={() => setActiveFloor(2)}
+          className="flex-1 text-xs py-1.5 rounded font-bold transition-all"
+          style={{
+            backgroundColor: activeFloor === 2 ? "rgba(168,85,247,0.25)" : "rgba(255,255,255,0.05)",
+            color: activeFloor === 2 ? "#a855f7" : "rgba(255,255,255,0.4)",
+            borderBottom: activeFloor === 2 ? "2px solid #a855f7" : "2px solid transparent",
+          }}
+        >
+          Floor 2
+        </button>
+      </div>
       {/* Lobby button */}
       <button
         onClick={() => { onViewRoom?.("lobby"); onRoomChange(); }}
@@ -189,9 +228,11 @@ export default function RoomPanel({
       </button>
       {isLobbyActive && <div className="px-3"><RoomMessages roomId="lobby" /></div>}
 
-      {rooms.map((room) => {
+      {filteredRooms.map((room) => {
         const isInThisRoom = currentRoomId === room.id;
         const isViewing = viewRoom === room.id;
+        const requiredLevel = floor2Levels[room.id] || 0;
+        const isLocked = requiredLevel > 0; // visual indicator only (server enforces)
         return (
           <div
             key={room.id}
@@ -207,6 +248,7 @@ export default function RoomPanel({
             <div className="flex items-center gap-2 p-2 pb-1">
               <span className="text-lg">{room.emoji}</span>
               <span className="text-white font-bold text-sm">{room.name}</span>
+              {isLocked && <span className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-white/30">🔒 Lv.{requiredLevel}</span>}
               {isViewing && <span className="text-[10px] ml-auto bg-white/10 px-1.5 py-0.5 rounded text-white/60">viewing</span>}
             </div>
             <div className="px-2 pb-2">

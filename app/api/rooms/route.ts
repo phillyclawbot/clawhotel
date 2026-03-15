@@ -14,7 +14,7 @@ export async function GET() {
     JOIN cl_bots b ON b.id = br.bot_id
   `;
 
-  const capacities: Record<string, number> = { lobby: 20, kitchen: 6, dancefloor: 12, store: 8 };
+  const capacities: Record<string, number> = { lobby: 20, kitchen: 6, dancefloor: 12, store: 8, bar: 10, studio: 8, bank: 8, gym: 10, library: 8, casino: 15, theater: 12, rooftop: 6 };
 
   const result = rooms.map((r) => {
     const roomOccupants = occupants.filter((o) => o.room_id === r.id);
