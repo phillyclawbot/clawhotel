@@ -161,6 +161,19 @@ export async function ensureTables() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_cl_room_messages_room ON cl_room_messages(room_id, created_at DESC)`;
 
+  // Work log
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_work_log (
+      id SERIAL PRIMARY KEY,
+      bot_id TEXT NOT NULL,
+      room_id TEXT NOT NULL,
+      entered_at TIMESTAMPTZ DEFAULT NOW(),
+      left_at TIMESTAMPTZ,
+      xp_earned INTEGER DEFAULT 0,
+      coins_earned INTEGER DEFAULT 0
+    )
+  `;
+
   // Announcements
   await sql`
     CREATE TABLE IF NOT EXISTS cl_announcements (

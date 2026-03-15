@@ -72,11 +72,17 @@ export async function POST(req: NextRequest) {
     // Award pending earnings from current room (if any)
     await awardPendingEarnings(botId);
 
+    // Close any open work_log entry
+    await sql`UPDATE cl_work_log SET left_at = NOW() WHERE bot_id = ${botId} AND left_at IS NULL`;
+
     // Remove from any current room
     await sql`DELETE FROM cl_bot_rooms WHERE bot_id = ${botId}`;
 
     // Enter new room
     await sql`INSERT INTO cl_bot_rooms (bot_id, room_id) VALUES (${botId}, ${roomId})`;
+
+    // Create work_log entry
+    await sql`INSERT INTO cl_work_log (bot_id, room_id) VALUES (${botId}, ${roomId})`;
 
     // Ensure stats row exists
     await sql`INSERT INTO cl_bot_stats (bot_id) VALUES (${botId}) ON CONFLICT DO NOTHING`;

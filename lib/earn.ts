@@ -68,6 +68,21 @@ export async function awardPendingEarnings(botId: string) {
   // Update last_earned_at
   await sql`UPDATE cl_bot_rooms SET last_earned_at = NOW() WHERE bot_id = ${botId}`;
 
+  // Update work_log with earnings
+  if (amount > 0) {
+    if (earn_type === "coins") {
+      await sql`
+        UPDATE cl_work_log SET coins_earned = coins_earned + ${amount}
+        WHERE bot_id = ${botId} AND room_id = ${room_id} AND left_at IS NULL
+      `;
+    } else {
+      await sql`
+        UPDATE cl_work_log SET xp_earned = xp_earned + ${amount}
+        WHERE bot_id = ${botId} AND room_id = ${room_id} AND left_at IS NULL
+      `;
+    }
+  }
+
   // Check milestones
   await checkMilestones(botId);
 

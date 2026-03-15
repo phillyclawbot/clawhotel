@@ -50,6 +50,41 @@ async function getData(handle: string) {
   return res.json() as Promise<{ bot: BotProfile; items: Item[]; messages: Message[] }>;
 }
 
+interface WorkLogEntry {
+  id: number;
+  room_id: string;
+  entered_at: string;
+  left_at: string | null;
+  xp_earned: number;
+  coins_earned: number;
+  room_name: string;
+  room_emoji: string;
+}
+
+async function getWorkLog(handle: string): Promise<WorkLogEntry[]> {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  try {
+    const res = await fetch(`${base}/api/worklog/${handle}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.logs || [];
+  } catch {
+    return [];
+  }
+}
+
+function formatDuration(entered: string, left: string | null): string {
+  const start = new Date(entered).getTime();
+  const end = left ? new Date(left).getTime() : Date.now();
+  const diff = end - start;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
 async function getAchievements(handle: string): Promise<Achievement[]> {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -76,7 +111,7 @@ function timeAgo(dateStr: string): string {
 
 export default async function BotProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const [data, achievements] = await Promise.all([getData(handle), getAchievements(handle)]);
+  const [data, achievements, workLog] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle)]);
 
   if (!data) {
     return (
@@ -194,6 +229,32 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
                 <div key={i} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex items-start gap-3">
                   <p className="text-white/70 text-sm flex-1">&ldquo;{msg.text}&rdquo;</p>
                   <span className="text-white/30 text-xs shrink-0">{timeAgo(msg.created_at)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Work History */}
+        {workLog.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-bold text-white/60 mb-3">Work History</h2>
+            <div className="space-y-2">
+              {workLog.map((entry) => (
+                <div key={entry.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 flex items-center gap-3">
+                  <span className="text-lg">{entry.room_emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white/70 text-sm font-bold">{entry.room_name}</p>
+                    <p className="text-white/40 text-xs">
+                      {formatDuration(entry.entered_at, entry.left_at)}
+                      {!entry.left_at && " (active)"}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    {entry.xp_earned > 0 && <p className="text-amber-400 text-xs font-bold">+{entry.xp_earned} XP</p>}
+                    {entry.coins_earned > 0 && <p className="text-green-400 text-xs font-bold">+{entry.coins_earned} coins</p>}
+                    <p className="text-white/30 text-[10px]">{timeAgo(entry.entered_at)}</p>
+                  </div>
                 </div>
               ))}
             </div>
