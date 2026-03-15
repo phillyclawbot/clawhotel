@@ -533,38 +533,50 @@ export default function World({
             container.addChild(statusText);
           }
 
-          // Speech bubble
+          // Speech bubble — visible for 5 minutes, fades from 3-5 min
           if (lb.data.speech && lb.data.speech_at) {
-            const elapsed = (Date.now() - new Date(lb.data.speech_at).getTime()) / 1000;
-            if (elapsed < 8) {
-              const alpha = elapsed > 6 ? 1 - (elapsed - 6) / 2 : 1;
+            const ageMs = Date.now() - new Date(lb.data.speech_at).getTime();
+            const fadeStart = 180000; // 3 min
+            const fadeEnd = 300000;   // 5 min
+            if (ageMs < fadeEnd) {
+              const alpha = ageMs < fadeStart ? 1.0 : Math.max(0, 1 - (ageMs - fadeStart) / (fadeEnd - fadeStart));
 
+              const truncated = lb.data.speech.length > 80 ? lb.data.speech.slice(0, 77) + "..." : lb.data.speech;
               const speechText = new PIXI.Text({
-                text: lb.data.speech.slice(0, 40),
-                style: { fontSize: 9, fill: 0x000000, fontFamily: "monospace", wordWrap: true, wordWrapWidth: 110 },
+                text: truncated,
+                style: { fontSize: 10, fill: 0x000000, fontFamily: "monospace", wordWrap: true, wordWrapWidth: 160 },
               });
               speechText.anchor.set(0.5, 1);
 
               const padding = 6;
-              const bw = speechText.width + padding * 2;
+              const bw = Math.min(speechText.width + padding * 2, 180);
               const bh = speechText.height + padding * 2;
 
               const bubbleY = hasHat ? -56 : -44;
-              const bubble = new PIXI.Graphics();
-              bubble.roundRect(-bw / 2, -bh + bubbleY - 2, bw, bh, 6);
-              bubble.fill({ color: 0xffffff, alpha });
-              bubble.stroke({ width: 1.5, color: accentNum, alpha });
-              bubble.poly([
-                { x: -3, y: bubbleY - 2 },
-                { x: 3, y: bubbleY - 2 },
-                { x: 0, y: bubbleY + 2 },
-              ]);
-              bubble.fill({ color: 0xffffff, alpha });
-              container.addChild(bubble);
 
-              speechText.y = bubbleY - 4;
-              speechText.alpha = alpha;
-              container.addChild(speechText);
+              const bubbleContainer = new PIXI.Container();
+              bubbleContainer.alpha = alpha;
+
+              const bubble = new PIXI.Graphics();
+              // Main rounded rect
+              bubble.roundRect(-bw / 2, -bh + bubbleY - 8, bw, bh, 8);
+              bubble.fill({ color: 0xffffff });
+              bubble.stroke({ width: 1, color: 0xcccccc });
+              // Triangle pointer
+              bubble.poly([
+                { x: -4, y: bubbleY - 8 },
+                { x: 4, y: bubbleY - 8 },
+                { x: 0, y: bubbleY - 2 },
+              ]);
+              bubble.fill({ color: 0xffffff });
+              // Accent color border on triangle
+              bubble.stroke({ width: 1, color: accentNum });
+              bubbleContainer.addChild(bubble);
+
+              speechText.y = bubbleY - 10;
+              bubbleContainer.addChild(speechText);
+
+              container.addChild(bubbleContainer);
             }
           }
 
