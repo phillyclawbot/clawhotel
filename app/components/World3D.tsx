@@ -135,6 +135,23 @@ export default function World3D({
   const rows = room ? room.grid.length : 10;
   const cols = room ? room.grid[0].length : 12;
 
+  // Responsive zoom — smaller on mobile, adapts to room size
+  const [zoom, setZoom] = useState(50);
+  useEffect(() => {
+    function calcZoom() {
+      const w = window.innerWidth;
+      const maxDim = Math.max(cols, rows);
+      // Base zoom scales inversely with room size
+      const baseZoom = w < 768 ? 28 : w < 1024 ? 38 : 50;
+      // Adjust for large rooms
+      const sizeAdjust = maxDim > 12 ? 12 / maxDim : 1;
+      setZoom(Math.round(baseZoom * sizeAdjust));
+    }
+    calcZoom();
+    window.addEventListener("resize", calcZoom);
+    return () => window.removeEventListener("resize", calcZoom);
+  }, [cols, rows]);
+
   return (
     <div className="w-full h-full relative">
       <Canvas
@@ -149,7 +166,7 @@ export default function World3D({
         <OrthographicCamera
           makeDefault
           position={[12, 10, 12]}
-          zoom={50}
+          zoom={zoom}
           near={0.1}
           far={200}
         />
