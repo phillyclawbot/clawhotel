@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import sql, { ensureTables } from "@/lib/db";
 import { awardPendingEarnings } from "@/lib/earn";
 import { checkAndAwardAchievements } from "@/lib/achievements";
+import { ROOMS } from "@/lib/rooms";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,12 @@ export async function POST(req: NextRequest) {
     const rooms = await sql`SELECT id, name, emoji, description, earn_type, earn_rate FROM cl_rooms WHERE id = ${roomId}`;
     if (rooms.length === 0) {
       return NextResponse.json({ error: "unknown room" }, { status: 400 });
+    }
+
+    // Check private room access
+    const roomDef = ROOMS[roomId];
+    if (roomDef?.owner && roomDef.owner !== botId) {
+      return NextResponse.json({ error: "Private room" }, { status: 403 });
     }
 
     // Award pending earnings from current room (if any)

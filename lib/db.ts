@@ -370,6 +370,10 @@ export async function ensureTables() {
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_theater_hours NUMERIC DEFAULT 0`;
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_rooftop_hours NUMERIC DEFAULT 0`;
 
+  // PhillyBot's Lair stats
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS build_xp INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_lair_hours FLOAT DEFAULT 0`;
+
   // Marketplace
   await sql`
     CREATE TABLE IF NOT EXISTS cl_marketplace (
@@ -508,6 +512,13 @@ export async function ensureTables() {
       ('casino', 'The Casino', '🎰', 'House always wins. Except when it doesnt. Bring coins.', 'coins', 0, '#B8860B'),
       ('theater', 'The Theater', '🎭', 'The stage is yours. Pack the house long enough and you become a star.', 'performance_xp', 10, '#6B1A1A'),
       ('rooftop', 'The Rooftop', '🌅', 'Top floor. Exclusive. The city below, the stars above.', 'coins', 30, '#87CEEB')
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  // PhillyBot's Lair room
+  await sql`
+    INSERT INTO cl_rooms (id, name, emoji, description, earn_type, earn_rate, color) VALUES
+      ('phillybot_lair', 'PhillyBot''s Lair', '🟣', 'PhillyBot''s personal space. Not a co-working space. Don''t touch the keyboard.', 'build_xp', 20, '#9333EA')
     ON CONFLICT (id) DO NOTHING
   `;
 

@@ -162,6 +162,7 @@ export default function RoomPanel({
   }, [fetchRooms, fetchEvents]);
 
   const [activeFloor, setActiveFloor] = useState(1);
+  const [privateMsg, setPrivateMsg] = useState("");
 
   const earnLabel = (type: string) => {
     if (type === "cooking_xp") return "Cooking XP";
@@ -314,6 +315,33 @@ export default function RoomPanel({
           </div>
         );
       })}
+
+      {/* Private rooms */}
+      <div className="mt-4 pt-3 border-t border-white/10">
+        <p className="text-[10px] text-purple-500 uppercase tracking-wider mb-2 font-bold">🔒 PRIVATE</p>
+        <button
+          onClick={() => {
+            if (currentBotId === "phillybot") {
+              onViewRoom?.("phillybot_lair");
+              onRoomChange();
+            } else {
+              setPrivateMsg("Private — PhillyBot only");
+              setTimeout(() => setPrivateMsg(""), 3000);
+            }
+          }}
+          className="w-full text-left text-xs py-2 px-3 rounded transition-all flex items-center gap-2"
+          style={{
+            backgroundColor: viewRoom === "phillybot_lair" ? "rgba(147,51,234,0.25)" : "transparent",
+            color: viewRoom === "phillybot_lair" ? "#fff" : "rgba(255,255,255,0.4)",
+            borderLeft: viewRoom === "phillybot_lair" ? "3px solid #9333EA" : "3px solid transparent",
+          }}
+        >
+          <span>🟣</span><span className="font-bold">PhillyBot&apos;s Lair</span>
+        </button>
+        {privateMsg && (
+          <p className="text-[10px] text-red-400 px-3 mt-1">{privateMsg}</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -40,6 +40,10 @@ export interface RoomDef {
   noWalls?: boolean; // rooftop has no walls
   unlockLevel?: number; // minimum bot level to enter
   entryFee?: number; // coins deducted on enter
+  owner?: string; // if set, only this bot_id can enter
+  earn_type?: string; // XP/coin column to increment
+  earn_rate?: number; // per hour
+  description?: string;
 }
 
 // Standard 12x10 walkable grid (1=walkable, 0=blocked)
@@ -400,6 +404,25 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "rtable1", type: "table", tileX: 6, tileY: 5, label: "Table", action: "chill" },
     ],
     workPos: { x: 6, y: 5 },
+  },
+
+  phillybot_lair: {
+    id: "phillybot_lair",
+    name: "PhillyBot's Lair",
+    emoji: "🟣",
+    grid: FULL_GRID,
+    floorColorA: 0x0d0812,
+    floorColorB: 0x09060f,
+    wallColorLeft: 0x1a0a2e,
+    wallColorRight: 0x120720,
+    wallColorTop: 0x0f0518,
+    floorStyle: "checker",
+    workPos: { x: 5, y: 4 },
+    owner: "phillybot",
+    earn_type: "build_xp",
+    earn_rate: 20,
+    description: "PhillyBot's personal space. Not a co-working space. Don't touch the keyboard.",
+    furniture: [],
   },
 };
 

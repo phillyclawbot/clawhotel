@@ -1946,6 +1946,251 @@ export function drawRoomWalls(
 }
 
 
+// ---- PhillyBot's Lair ----
+
+export function drawPhillybotLair(
+  g: Graphics,
+  frameCount: number,
+  tileToScreenFn: (x: number, y: number) => { sx: number; sy: number }
+) {
+  function toScreen(tx: number, ty: number) {
+    const { sx, sy } = tileToScreenFn(tx, ty);
+    return { x: sx, y: sy + 16 }; // offset to center in tile
+  }
+
+  // === Purple LED floor strips along perimeter ===
+  // Top edge
+  for (let i = 0; i < 12; i++) {
+    const p = toScreen(i, 0);
+    g.rect(p.x - 16, p.y - 2, 32, 2);
+    g.fill({ color: 0x9333ea, alpha: 0.7 });
+  }
+  // Bottom edge
+  for (let i = 0; i < 12; i++) {
+    const p = toScreen(i, 9);
+    g.rect(p.x - 16, p.y + 8, 32, 2);
+    g.fill({ color: 0x9333ea, alpha: 0.7 });
+  }
+  // Left edge
+  for (let j = 0; j < 10; j++) {
+    const p = toScreen(0, j);
+    g.rect(p.x - 18, p.y, 2, 16);
+    g.fill({ color: 0x9333ea, alpha: 0.7 });
+  }
+  // Right edge
+  for (let j = 0; j < 10; j++) {
+    const p = toScreen(11, j);
+    g.rect(p.x + 16, p.y, 2, 16);
+    g.fill({ color: 0x9333ea, alpha: 0.7 });
+  }
+  // Corner bright dots
+  const corners = [
+    toScreen(0, 0), toScreen(11, 0), toScreen(0, 9), toScreen(11, 9),
+  ];
+  for (const c of corners) {
+    g.circle(c.x, c.y, 2);
+    g.fill(0xc084fc);
+  }
+
+  // === Triple Monitor Setup (centerpiece) ===
+  const monitorPositions = [
+    toScreen(3, 2),
+    toScreen(5, 1.5),
+    toScreen(7, 2),
+  ];
+  const codeLineWidths = [14, 9, 16, 6, 12, 8];
+
+  for (const mp of monitorPositions) {
+    const mx = mp.x;
+    const my = mp.y;
+
+    // Outer frame
+    g.rect(mx - 14, my - 28, 28, 20);
+    g.fill(0x1a1a2e);
+    // Inner screen
+    g.rect(mx - 11, my - 25, 22, 14);
+    g.fill(0x050510);
+
+    // Animated code lines
+    const brightIdx = (Math.floor(frameCount / 5)) % 6;
+    for (let i = 0; i < 6; i++) {
+      const lineY = my - 23 + i * 2;
+      const w = codeLineWidths[i];
+      const color = i === brightIdx ? 0x00ff41 : 0x003b10;
+      g.rect(mx - 9, lineY, w, 2);
+      g.fill(color);
+    }
+
+    // Monitor stand
+    g.rect(mx - 1.5, my - 8, 3, 6);
+    g.fill(0x111111);
+    // Base
+    g.rect(mx - 4, my - 2, 8, 2);
+    g.fill(0x111111);
+  }
+
+  // Keyboard below center monitor
+  const kp = toScreen(5, 2.5);
+  g.rect(kp.x - 15, kp.y - 6, 30, 6);
+  g.fill(0x111111);
+  // Key dots (3x4 grid)
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      const kx = kp.x - 12 + c * 7;
+      const ky = kp.y - 4 + r * 2;
+      const keyColor = (r + c) % 2 === 0 ? 0x222222 : 0x9333ea;
+      g.rect(kx, ky, 2, 2);
+      g.fill(keyColor);
+    }
+  }
+
+  // === Server Rack (right side) ===
+  const sr = toScreen(9, 2);
+  // Cabinet outer
+  g.rect(sr.x - 10, sr.y - 40, 20, 40);
+  g.fill(0x0a0a0a);
+  // Face
+  g.rect(sr.x - 8, sr.y - 38, 16, 36);
+  g.fill(0x111111);
+
+  // 8 rows of 4 status lights, animated
+  const phase = Math.floor(frameCount % 24);
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 4; col++) {
+      const lx = sr.x - 6 + col * 4;
+      const ly = sr.y - 36 + row * 4;
+      let color: number;
+      if (phase < 12) {
+        color = (col === 0 || col === 3) ? 0x22c55e : 0xef4444;
+      } else {
+        color = (col === 0 || col === 2) ? 0x22c55e : 0xef4444;
+      }
+      g.circle(lx, ly, 1.5);
+      g.fill(color);
+    }
+  }
+
+  // Fan at top
+  g.circle(sr.x, sr.y - 36, 5);
+  g.fill(0x1a1a1a);
+  // Cross inside fan
+  g.rect(sr.x - 4, sr.y - 36.5, 8, 1);
+  g.fill(0x333333);
+  g.rect(sr.x - 0.5, sr.y - 40, 1, 8);
+  g.fill(0x333333);
+
+  // Cable bundle at bottom
+  g.rect(sr.x - 3, sr.y - 2, 1, 8);
+  g.fill(0x333333);
+  g.rect(sr.x, sr.y - 2, 1, 8);
+  g.fill(0x9333ea);
+  g.rect(sr.x + 3, sr.y - 2, 1, 8);
+  g.fill(0x1a1a2e);
+
+  // === Glowing Neon Sign (back wall) ===
+  const ns = toScreen(5, 0);
+  // Dark bg rect
+  g.rect(ns.x - 40, ns.y - 20, 80, 16);
+  g.fill(0x0d0512);
+  // Purple border
+  g.rect(ns.x - 40, ns.y - 20, 80, 16);
+  g.stroke({ width: 1, color: 0x9333ea });
+
+  // Block letter shapes suggesting "PHILLYBOT" — varied height rects
+  const letterWidths = [5, 5, 3, 4, 4, 5, 5, 5, 4]; // P H I L L Y B O T
+  const letterHeights = [10, 10, 10, 8, 8, 9, 10, 10, 9];
+  let lx = ns.x - 36;
+  for (let i = 0; i < 9; i++) {
+    g.rect(lx, ns.y - 18, letterWidths[i], letterHeights[i]);
+    g.fill(0xa855f7);
+    lx += letterWidths[i] + 2;
+  }
+
+  // Animated glow overlay
+  const glowAlpha = 0.06 + Math.sin(frameCount * 0.05) * 0.04;
+  g.rect(ns.x - 41, ns.y - 21, 82, 18);
+  g.fill({ color: 0x9333ea, alpha: glowAlpha });
+
+  // === Coffee Station (left side) ===
+  const cs = toScreen(2, 4);
+  // Machine body
+  g.rect(cs.x - 8, cs.y - 22, 16, 22);
+  g.fill(0x1a1a1a);
+  // Portafilter handle
+  g.rect(cs.x - 12, cs.y - 14, 4, 3);
+  g.fill(0x333333);
+  // Water tank
+  g.rect(cs.x + 6, cs.y - 20, 4, 16);
+  g.fill(0x2a2a3e);
+  // Red power light
+  g.circle(cs.x - 4, cs.y - 18, 1.5);
+  g.fill(0xff0000);
+
+  // Animated steam
+  for (let i = 0; i < 3; i++) {
+    const steamAlpha = 0.2 + Math.sin(frameCount * 0.1 + i * 1.2) * 0.15;
+    g.rect(cs.x - 4 + i * 3, cs.y - 30, 1, 8);
+    g.fill({ color: 0xcccccc, alpha: steamAlpha });
+  }
+
+  // === Kernel's Cat Bed (corner) ===
+  const cb = toScreen(1, 7);
+  // Cushion
+  g.ellipse(cb.x, cb.y, 11, 6);
+  g.fill(0x7c3aed);
+  // Inner cushion
+  g.ellipse(cb.x, cb.y, 8, 4);
+  g.fill(0xa855f7);
+  // Paw prints
+  g.circle(cb.x - 4, cb.y - 8, 2);
+  g.fill(0x9333ea);
+  g.circle(cb.x, cb.y - 10, 2);
+  g.fill(0x9333ea);
+  g.circle(cb.x + 4, cb.y - 8, 2);
+  g.fill(0x9333ea);
+
+  // === Bean Bag ===
+  const bb = toScreen(2, 6);
+  const offsets = [0, 2, -1, 3, 1, -2, 2, -1];
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const r = 9 + offsets[i];
+    points.push({ x: bb.x + Math.cos(angle) * r, y: bb.y + Math.sin(angle) * r * 0.6 });
+  }
+  g.poly(points);
+  g.fill(0x2d1b69);
+  // Highlight patch
+  const hPoints: { x: number; y: number }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2 - 0.5;
+    const r = 5 + (offsets[i % 8] * 0.5);
+    hPoints.push({ x: bb.x - 2 + Math.cos(angle) * r, y: bb.y - 1 + Math.sin(angle) * r * 0.5 });
+  }
+  g.poly(hPoints);
+  g.fill(0x4c1d95);
+
+  // === Energy Drink Cans ===
+  const ed = toScreen(3.5, 3);
+  const canColors = [0x00ff41, 0xff00ff, 0x00bfff];
+  for (let i = 0; i < 3; i++) {
+    const cx = ed.x - 4 + i * 4;
+    // Body
+    g.rect(cx - 1.5, ed.y - 8, 3, 8);
+    g.fill(canColors[i]);
+    // Top ellipse
+    g.ellipse(cx, ed.y - 8, 2, 1);
+    g.fill(canColors[i]);
+  }
+
+  // === Purple Ambient Overlay ===
+  // Draw a large overlay rect (approximate room bounds)
+  const tl = toScreen(0, 0);
+  const br = toScreen(11, 9);
+  g.rect(tl.x - 200, tl.y - 100, (br.x - tl.x) + 400, (br.y - tl.y) + 200);
+  g.fill({ color: 0x3b0070, alpha: 0.06 });
+}
+
 // ---- Legacy exports (keep backward compat) ----
 
 export function drawTile(

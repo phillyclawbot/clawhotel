@@ -181,7 +181,7 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
-      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat, drawRooftopSky } = await import("@/lib/pixel");
+      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat, drawRooftopSky, drawPhillybotLair } = await import("@/lib/pixel");
       const { drawOutfit } = await import("@/lib/clothing");
       const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
       const { getCurrentSeason, SEASON_CONFIG } = await import("@/lib/season");
@@ -355,6 +355,11 @@ export default function World({
         for (const pf of placedFurnitureRef.current) {
           const { sx, sy } = tileToScreen(pf.tile_x, pf.tile_y);
           drawFurniture(fGfx, pf.pixi_type as "chair", sx, sy + TILE_H / 2, frameCount);
+        }
+
+        // Draw PhillyBot's Lair custom furniture
+        if (lastDrawnRoom === "phillybot_lair") {
+          drawPhillybotLair(fGfx, frameCount, tileToScreen);
         }
 
         // Draw bots — filtered to current room
