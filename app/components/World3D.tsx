@@ -185,7 +185,7 @@ export default function World3D({
         <Lights roomId={activeRoom} />
 
         <Suspense fallback={null}>
-          <Room3D roomId={activeRoom} />
+          <Room3D key={activeRoom} roomId={activeRoom} />
           {roomBots.map((bot) => (
             <Bot3D
               key={bot.id}
