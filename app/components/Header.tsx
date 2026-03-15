@@ -46,12 +46,14 @@ export default function Header({
   bots = [],
   onMenuToggle,
   onViewerSession,
+  onJumpToRoom,
 }: {
   onlineCount: number;
   visitorCount?: number;
   bots?: BotData[];
   onMenuToggle?: () => void;
   onViewerSession?: (session: ViewerSession | null) => void;
+  onJumpToRoom?: (roomId: string) => void;
 }) {
   const [seasonEmoji, setSeasonEmoji] = useState("");
   const [showPopover, setShowPopover] = useState(false);
@@ -147,7 +149,11 @@ export default function Header({
                       </span>
                     </div>
                     {roomBots.map((bot) => (
-                      <div key={bot.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/5 transition-colors">
+                      <button
+                        key={bot.id}
+                        onClick={() => { onJumpToRoom?.(bot.room_id); setShowPopover(false); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/5 transition-colors text-left active:bg-white/10"
+                      >
                         <span className="text-base leading-none">{bot.emoji}</span>
                         <div className="flex-1 min-w-0">
                           <span className="text-sm font-bold truncate block" style={{ color: bot.accent_color }}>
@@ -160,7 +166,7 @@ export default function Header({
                           </span>
                         )}
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                 ))}

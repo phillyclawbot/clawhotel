@@ -61,6 +61,7 @@ export default function Home() {
       <Header
         onlineCount={bots.length}
         bots={bots}
+        onJumpToRoom={(roomId) => setViewRoom(roomId)}
         visitorCount={visitorCount}
         onMenuToggle={() => setSidebarOpen((o) => !o)}
         onViewerSession={setViewerSession}
