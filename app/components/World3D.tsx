@@ -67,9 +67,19 @@ interface WorldProps {
   highlightBotId?: string | null;
 }
 
-function CameraLookAt() {
+function CameraController({ zoom, cols, rows }: { zoom: number; cols: number; rows: number }) {
   const { camera } = useThree();
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  // Center camera on the room — offset accounts for grid centering in Room3D
+  const centerX = 0;
+  const centerZ = 0;
+  useEffect(() => {
+    if (camera instanceof THREE.OrthographicCamera) {
+      camera.zoom = zoom;
+      camera.position.set(centerX + 12, 10, centerZ + 12);
+      camera.lookAt(new THREE.Vector3(centerX, 0, centerZ));
+      camera.updateProjectionMatrix();
+    }
+  }, [camera, zoom, cols, rows]);
   return null;
 }
 
@@ -166,11 +176,11 @@ export default function World3D({
         <OrthographicCamera
           makeDefault
           position={[12, 10, 12]}
-          zoom={zoom}
+          zoom={35}
           near={0.1}
           far={200}
         />
-        <CameraLookAt />
+        <CameraController zoom={zoom} cols={cols} rows={rows} />
 
         {/* NO fog — rooms should be bright and clear */}
 
