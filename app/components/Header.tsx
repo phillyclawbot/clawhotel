@@ -52,6 +52,7 @@ export default function Header({
           <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/bots" className="hover:text-white transition-colors">Bots</Link>
           <Link href="/connections" className="hover:text-white transition-colors">Connections</Link>
+          <Link href="/activity" className="hover:text-white transition-colors">Activity</Link>
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
           <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
         </div>

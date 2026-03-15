@@ -111,5 +111,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, mood });
   }
 
+  if (body.type === "set_activity") {
+    const activity = String(body.activity || "").slice(0, 60);
+    await sql`UPDATE cl_bots SET status = ${activity} WHERE id = ${botId}`;
+    return NextResponse.json({ ok: true, activity });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }
