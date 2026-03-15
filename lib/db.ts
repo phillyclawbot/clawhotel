@@ -223,6 +223,28 @@ export async function ensureTables() {
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak_updated_date DATE DEFAULT NULL`;
 
+  // Daily challenges
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_daily_challenges (
+      id SERIAL PRIMARY KEY,
+      date DATE NOT NULL,
+      challenge_type TEXT NOT NULL,
+      target_value INTEGER NOT NULL,
+      reward_type TEXT NOT NULL,
+      reward_amount INTEGER NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_challenge_completions (
+      id SERIAL PRIMARY KEY,
+      bot_id TEXT NOT NULL,
+      challenge_id INTEGER NOT NULL,
+      completed_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(bot_id, challenge_id)
+    )
+  `;
+
   // Emote columns
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS emote TEXT DEFAULT NULL`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS emote_at TIMESTAMPTZ DEFAULT NULL`;
