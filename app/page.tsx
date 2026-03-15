@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Header from "./components/Header";
-const World = dynamic(() => import("./components/World3D"), { ssr: false });
+const World = dynamic(() => import("./components/World2D"), { ssr: false });
 import BotPanel from "./components/BotPanel";
 import RoomPanel from "./components/RoomPanel";
 import Minimap from "./components/Minimap";
