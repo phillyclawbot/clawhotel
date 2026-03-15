@@ -156,7 +156,7 @@ function FurnitureGLB({
       object={scene}
       position={position}
       rotation={[0, rotationY, 0]}
-      scale={scale}
+      scale={scale * 1.8}
       castShadow
       receiveShadow
     />
