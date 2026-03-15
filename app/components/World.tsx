@@ -96,6 +96,7 @@ export default function World({
   const worldContainerRef = useRef<unknown>(null);
   const currentRoomRef = useRef<string>(viewRoom);
   const crowdRatioRef = useRef<number>(0);
+  const placedFurnitureRef = useRef<{ pixi_type: string; tile_x: number; tile_y: number }[]>([]);
   const [ready, setReady] = useState(false);
 
   // Keep ref in sync
@@ -150,6 +151,18 @@ export default function World({
           const lobbyBots = bots.filter((b: BotData) => !b.room_id || b.room_id === "lobby").length;
           crowdRatioRef.current = lobbyBots / 20;
         }
+      } catch { /* silent */ }
+
+      // Fetch placed furniture for current room
+      try {
+        const viewedRoom = currentRoomRef.current;
+        const furnRes = await fetch(`/api/furniture/room/${viewedRoom}`);
+        const furnData = await furnRes.json();
+        placedFurnitureRef.current = (furnData.furniture || []).map((f: { pixi_type: string; tile_x: number; tile_y: number }) => ({
+          pixi_type: f.pixi_type,
+          tile_x: f.tile_x,
+          tile_y: f.tile_y,
+        }));
       } catch { /* silent */ }
     } catch {
       // silent fail on poll
@@ -325,6 +338,12 @@ export default function World({
           });
 
           furnitureLayer.addChild(hitArea);
+        }
+
+        // Draw placed (user-owned) furniture
+        for (const pf of placedFurnitureRef.current) {
+          const { sx, sy } = tileToScreen(pf.tile_x, pf.tile_y);
+          drawFurniture(fGfx, pf.pixi_type as "chair", sx, sy + TILE_H / 2, frameCount);
         }
 
         // Draw bots — filtered to current room

@@ -353,6 +353,44 @@ export async function ensureTables() {
     )
   `;
 
+  // Furniture catalog
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_furniture_catalog (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      emoji TEXT NOT NULL,
+      price INTEGER NOT NULL,
+      room_id TEXT,
+      pixi_type TEXT NOT NULL
+    )
+  `;
+
+  // Placed furniture
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_placed_furniture (
+      id SERIAL PRIMARY KEY,
+      owner_bot TEXT NOT NULL,
+      furniture_id TEXT NOT NULL,
+      room_id TEXT NOT NULL,
+      tile_x FLOAT NOT NULL,
+      tile_y FLOAT NOT NULL,
+      placed_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
+  // Seed furniture catalog
+  await sql`
+    INSERT INTO cl_furniture_catalog (id, name, emoji, price, room_id, pixi_type) VALUES
+      ('golden_chair', 'Gold Chair', '🪑', 80, NULL, 'chair'),
+      ('neon_table', 'Neon Table', '🌈', 120, NULL, 'table'),
+      ('trophy_case', 'Trophy Case', '🏆', 200, NULL, 'bulletin'),
+      ('hot_tub', 'Hot Tub', '🛁', 500, 'lobby', 'table'),
+      ('vip_couch', 'VIP Couch', '🛋️', 350, NULL, 'counter'),
+      ('disco_mirror', 'Disco Mirror', '🪩', 150, 'dancefloor', 'disco_ball'),
+      ('kitchen_upgrade', 'Pro Stove', '⭐', 400, 'kitchen', 'stove')
+    ON CONFLICT (id) DO NOTHING
+  `;
+
   // Seed clothing catalog
   await sql`
     INSERT INTO cl_clothing_catalog (id, name, slot, emoji, color, unlock_type, unlock_value, description) VALUES
