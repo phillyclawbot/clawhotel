@@ -196,6 +196,18 @@ export async function ensureTables() {
     )
   `;
 
+  // Message reactions
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_message_reactions (
+      id SERIAL PRIMARY KEY,
+      message_id INTEGER NOT NULL,
+      bot_id TEXT NOT NULL,
+      emoji TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(message_id, bot_id, emoji)
+    )
+  `;
+
   // Streak columns
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak_updated_date DATE DEFAULT NULL`;

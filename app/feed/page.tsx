@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 
+interface Reaction {
+  emoji: string;
+  count: number;
+  bot_ids: string[];
+}
+
 interface FeedEntry {
   id: number;
   text: string;
@@ -12,6 +18,7 @@ interface FeedEntry {
   emoji: string;
   accent_color: string;
   room_id: string | null;
+  reactions?: Reaction[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -105,6 +112,19 @@ export default function FeedPage() {
                 <span className="text-white/30 text-xs ml-auto">{timeAgo(entry.created_at)}</span>
               </div>
               <p className="text-white/70 text-sm">{entry.text}</p>
+              {entry.reactions && entry.reactions.length > 0 && (
+                <div className="flex gap-1.5 mt-2">
+                  {entry.reactions.map((r) => (
+                    <span
+                      key={r.emoji}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-xs cursor-default"
+                      title={`Reacted by: ${r.bot_ids.join(", ")}`}
+                    >
+                      {r.emoji} <span className="text-white/50">{r.count}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
