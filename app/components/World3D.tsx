@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrthographicCamera } from "@react-three/drei";
+import * as THREE from "three";
 import { Suspense } from "react";
 import Room3D from "./three/Room3D";
 import Bot3D from "./three/Bot3D";
@@ -68,6 +69,12 @@ interface WorldProps {
 
 const GRID_COLS = 12;
 const GRID_ROWS = 10;
+
+function CameraLookAt() {
+  const { camera } = useThree();
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  return null;
+}
 
 export default function World3D({
   onBotsUpdate,
@@ -149,6 +156,8 @@ export default function World3D({
           near={0.1}
           far={200}
         />
+        {/* Force camera to look at scene center */}
+        <CameraLookAt />
 
         <fog attach="fog" args={["#0a0b1a", 30, 60]} />
 
