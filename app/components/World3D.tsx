@@ -135,17 +135,17 @@ export default function World3D({
   const rows = room ? room.grid.length : 10;
   const cols = room ? room.grid[0].length : 12;
 
-  // Responsive zoom — smaller on mobile, adapts to room size
-  const [zoom, setZoom] = useState(50);
+  // Responsive zoom — smaller on mobile, scales to fit the largest room dimension
+  const [zoom, setZoom] = useState(35);
   useEffect(() => {
     function calcZoom() {
       const w = window.innerWidth;
       const maxDim = Math.max(cols, rows);
-      // Base zoom scales inversely with room size
-      const baseZoom = w < 768 ? 28 : w < 1024 ? 38 : 50;
-      // Adjust for large rooms
-      const sizeAdjust = maxDim > 12 ? 12 / maxDim : 1;
-      setZoom(Math.round(baseZoom * sizeAdjust));
+      // Target: the room should fill ~70% of the viewport width
+      // At zoom=1, 1 Three.js unit = 1 pixel. We want maxDim units to fit in 70% of w.
+      const targetZoom = (w * 0.55) / maxDim;
+      // Clamp between 20 and 55
+      setZoom(Math.max(20, Math.min(55, Math.round(targetZoom))));
     }
     calcZoom();
     window.addEventListener("resize", calcZoom);
