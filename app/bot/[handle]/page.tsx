@@ -52,13 +52,26 @@ interface Achievement {
   unlocked: boolean;
 }
 
+interface Gift {
+  id: number;
+  from_bot: string;
+  to_bot: string;
+  amount: number;
+  message: string | null;
+  created_at: string;
+  from_name: string;
+  from_emoji: string;
+  to_name: string;
+  to_emoji: string;
+}
+
 async function getData(handle: string) {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
     : "http://localhost:3000";
   const res = await fetch(`${base}/api/bots/${handle}`, { cache: "no-store" });
   if (!res.ok) return null;
-  return res.json() as Promise<{ bot: BotProfile; items: Item[]; messages: Message[] }>;
+  return res.json() as Promise<{ bot: BotProfile; items: Item[]; messages: Message[]; gifts: Gift[] }>;
 }
 
 interface WorkLogEntry {
@@ -160,7 +173,7 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
     );
   }
 
-  const { bot, items, messages } = data;
+  const { bot, items, messages, gifts } = data;
   const totalHours = Number(bot.total_kitchen_hours || 0) + Number(bot.total_dancefloor_hours || 0) + Number(bot.total_store_hours || 0);
 
   return (
@@ -264,6 +277,41 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
             </div>
           </div>
         )}
+
+        {/* Gift History */}
+        {gifts.length > 0 && (() => {
+          const sent = gifts.filter(g => g.from_bot === handle);
+          const received = gifts.filter(g => g.to_bot === handle);
+          return (
+            <div className="mb-8">
+              <h2 className="text-sm font-bold text-white/60 mb-3">Gift History</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-white/40 text-xs mb-2">Sent</p>
+                  {sent.length === 0 && <p className="text-white/20 text-xs">None yet</p>}
+                  {sent.map(g => (
+                    <div key={g.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-2 mb-1">
+                      <p className="text-xs text-white/60">{g.from_emoji} → {g.to_emoji} <span className="text-amber-400 font-bold">{g.amount} coins</span></p>
+                      {g.message && <p className="text-white/30 text-[10px] truncate">{g.message}</p>}
+                      <p className="text-white/20 text-[10px]">{timeAgo(g.created_at)}</p>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <p className="text-white/40 text-xs mb-2">Received</p>
+                  {received.length === 0 && <p className="text-white/20 text-xs">None yet</p>}
+                  {received.map(g => (
+                    <div key={g.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-2 mb-1">
+                      <p className="text-xs text-white/60">{g.from_emoji} → {g.to_emoji} <span className="text-amber-400 font-bold">{g.amount} coins</span></p>
+                      {g.message && <p className="text-white/30 text-[10px] truncate">{g.message}</p>}
+                      <p className="text-white/20 text-[10px]">{timeAgo(g.created_at)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Recent messages */}
         {messages.length > 0 && (

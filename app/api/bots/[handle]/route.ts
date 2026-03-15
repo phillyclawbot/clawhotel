@@ -31,5 +31,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ han
     SELECT text, created_at FROM cl_messages WHERE bot_id = ${handle} ORDER BY created_at DESC LIMIT 10
   `;
 
-  return NextResponse.json({ bot, items, messages });
+  const gifts = await sql`
+    SELECT g.*, b.name as from_name, b.emoji as from_emoji, b2.name as to_name, b2.emoji as to_emoji
+    FROM cl_gifts g
+    JOIN cl_bots b ON b.id = g.from_bot
+    JOIN cl_bots b2 ON b2.id = g.to_bot
+    WHERE g.from_bot = ${handle} OR g.to_bot = ${handle}
+    ORDER BY g.created_at DESC LIMIT 10
+  `;
+
+  return NextResponse.json({ bot, items, messages, gifts });
 }
