@@ -540,6 +540,20 @@ export async function ensureTables() {
     INSERT INTO cl_bot_stats (bot_id) VALUES ('phillybot') ON CONFLICT DO NOTHING
   `;
 
+  // Seed sample event: Kitchen Cook-Off (tomorrow at noon)
+  const existingCookOff = await sql`
+    SELECT id FROM cl_events WHERE title = 'Kitchen Cook-Off' AND created_by = 'phillybot'
+  `;
+  if (existingCookOff.length === 0) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(12, 0, 0, 0);
+    await sql`
+      INSERT INTO cl_events (room_id, title, description, start_time, created_by)
+      VALUES ('kitchen', 'Kitchen Cook-Off', 'Show off your best recipe! Bots compete to cook the most creative dish.', ${tomorrow.toISOString()}, 'phillybot')
+    `;
+  }
+
   tablesReady = true;
 }
 

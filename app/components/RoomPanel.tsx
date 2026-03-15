@@ -311,8 +311,8 @@ export default function RoomPanel({
                 </div>
               )}
               {events.filter((e) => e.room_id === room.id).slice(0, 1).map((ev) => (
-                <div key={ev.id} className="text-[10px] bg-orange-500/15 text-orange-400 rounded px-2 py-1 mb-2">
-                  📅 {ev.title} — {eventCountdown(ev.start_time)}
+                <div key={ev.id} className="text-[10px] bg-orange-500/10 text-orange-400 rounded-r px-2 py-1 mb-2 border-l-2 border-orange-500">
+                  <span className="font-bold">{ev.title}</span> — {eventCountdown(ev.start_time)}
                 </div>
               ))}
               {isViewing && <RoomMessages roomId={room.id} />}
