@@ -26,6 +26,8 @@ interface BotData {
   mood?: string;
   checked_in_at?: string;
   streak?: number;
+  emote?: string;
+  emote_at?: string;
   items?: BotItem[];
 }
 
@@ -489,6 +491,51 @@ export default function World({
                 sparkleGfx.fill({ color: 0xFFD700, alpha: sparkleAlpha });
               }
               container.addChild(sparkleGfx);
+            }
+          }
+
+          // Emote floating animation
+          if (lb.data.emote && lb.data.emote_at) {
+            const emoteAge = (Date.now() - new Date(lb.data.emote_at).getTime()) / 1000;
+            if (emoteAge < 5) {
+              const emoteMap: Record<string, string> = {
+                wave: "👋", dance: "💃", cheer: "🎉", shrug: "🤷", sleep: "💤",
+              };
+              const emoteChar = emoteMap[lb.data.emote] || "✨";
+              const emoteText = new PIXI.Text({
+                text: emoteChar,
+                style: { fontSize: 16 },
+              });
+              emoteText.anchor.set(0.5, 0.5);
+
+              const bubbleBaseY = hasChefHat ? -66 : -54;
+
+              if (lb.data.emote === "wave") {
+                // Float up and fade
+                emoteText.y = bubbleBaseY - emoteAge * 8;
+                emoteText.alpha = Math.max(0, 1 - emoteAge / 3);
+              } else if (lb.data.emote === "dance") {
+                // Bounce side to side
+                emoteText.x = Math.sin(frameCount * 0.15) * 8;
+                emoteText.y = bubbleBaseY;
+                emoteText.alpha = Math.max(0, 1 - emoteAge / 5);
+              } else if (lb.data.emote === "cheer") {
+                // Explode outward
+                const scale = 1 + emoteAge * 0.5;
+                emoteText.scale.set(scale);
+                emoteText.y = bubbleBaseY - emoteAge * 4;
+                emoteText.alpha = emoteAge < 2 ? Math.max(0, 1 - emoteAge / 2) : 0;
+              } else if (lb.data.emote === "shrug") {
+                // Float up, stay 2s
+                emoteText.y = bubbleBaseY - Math.min(emoteAge, 0.5) * 10;
+                emoteText.alpha = emoteAge > 2 ? Math.max(0, 1 - (emoteAge - 2) / 1) : 1;
+              } else if (lb.data.emote === "sleep") {
+                // Drift upward slowly
+                emoteText.y = bubbleBaseY - emoteAge * 4;
+                emoteText.alpha = Math.max(0, 1 - emoteAge / 5);
+              }
+
+              container.addChild(emoteText);
             }
           }
 

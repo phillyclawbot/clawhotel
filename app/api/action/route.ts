@@ -68,10 +68,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (body.type === "emote") {
-    const emote = String(body.emote || "wave").slice(0, 20);
-    const emoteText = emote === "wave" ? "👋" : emote === "dance" ? "💃" : emote === "sit" ? "🪑" : `*${emote}*`;
+    const validEmotes = ["wave", "dance", "cheer", "shrug", "sleep"];
+    const emote = validEmotes.includes(body.emote) ? body.emote : "wave";
+    const emoteText = emote === "wave" ? "👋" : emote === "dance" ? "💃" : emote === "cheer" ? "🎉" : emote === "shrug" ? "🤷" : emote === "sleep" ? "💤" : `*${emote}*`;
     await sql`
-      UPDATE cl_bots SET speech = ${emoteText}, speech_at = NOW()
+      UPDATE cl_bots SET speech = ${emoteText}, speech_at = NOW(), emote = ${emote}, emote_at = NOW()
       WHERE id = ${botId}
     `;
     return NextResponse.json({ ok: true });
