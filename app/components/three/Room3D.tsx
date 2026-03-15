@@ -14,58 +14,46 @@ function numToHex(n: number): string {
 function FloorTiles({ room, rows, cols }: { room: RoomDef; rows: number; cols: number }) {
   const colorA = numToHex(room.floorColorA);
   const colorB = numToHex(room.floorColorB);
+  const isDisco = room.floorStyle === "disco";
 
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-
-  const { matrices, colors } = useMemo(() => {
-    const count = rows * cols;
-    const m: THREE.Matrix4[] = [];
-    const c: THREE.Color[] = [];
+  const tiles = useMemo(() => {
+    const t: { x: number; z: number; color: string }[] = [];
     for (let z = 0; z < rows; z++) {
       for (let x = 0; x < cols; x++) {
-        const mat = new THREE.Matrix4();
-        mat.setPosition(x - cols / 2, 0, z - rows / 2);
-        m.push(mat);
-        c.push(new THREE.Color((x + z) % 2 === 0 ? colorA : colorB));
+        t.push({
+          x: x - cols / 2,
+          z: z - rows / 2,
+          color: (x + z) % 2 === 0 ? colorA : colorB,
+        });
       }
     }
-    return { matrices: m, colors: c };
+    return t;
   }, [rows, cols, colorA, colorB]);
 
-  const count = rows * cols;
+  return (
+    <group>
+      {tiles.map((tile, i) => (
+        <FloorTile key={i} x={tile.x} z={tile.z} color={tile.color} isDisco={isDisco} index={i} />
+      ))}
+    </group>
+  );
+}
 
-  // Set instance matrices and colors after mount
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const mesh = meshRef.current;
-    if (!mesh.userData.initialized) {
-      for (let i = 0; i < count; i++) {
-        mesh.setMatrixAt(i, matrices[i]);
-        mesh.setColorAt(i, colors[i]);
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-      mesh.userData.initialized = true;
-    }
-  });
+function FloorTile({ x, z, color, isDisco, index }: { x: number; z: number; color: string; isDisco: boolean; index: number }) {
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
 
-  // For disco floor, animate colors
   useFrame((state) => {
-    if (room.floorStyle !== "disco" || !meshRef.current) return;
+    if (!isDisco || !matRef.current) return;
     const t = state.clock.elapsedTime;
-    for (let i = 0; i < count; i++) {
-      const hue = (t * 0.1 + i * 0.05) % 1;
-      colors[i].setHSL(hue, 0.5, 0.2);
-      meshRef.current.setColorAt(i, colors[i]);
-    }
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+    const hue = (t * 0.1 + index * 0.05) % 1;
+    matRef.current.color.setHSL(hue, 0.5, 0.2);
   });
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} receiveShadow>
+    <mesh position={[x, 0, z]} receiveShadow>
       <boxGeometry args={[0.95, 0.15, 0.95]} />
-      <meshStandardMaterial flatShading vertexColors />
-    </instancedMesh>
+      <meshStandardMaterial ref={matRef} color={color} flatShading />
+    </mesh>
   );
 }
 

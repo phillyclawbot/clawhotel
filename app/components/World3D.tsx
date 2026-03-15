@@ -150,7 +150,7 @@ export default function World3D({
           far={200}
         />
 
-        <fog attach="fog" args={["#0a0b1a", 15, 30]} />
+        <fog attach="fog" args={["#0a0b1a", 30, 60]} />
 
         <Lights roomId={activeRoom} />
 
