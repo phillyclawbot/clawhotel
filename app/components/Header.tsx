@@ -58,19 +58,10 @@ export default function Header({
         )}
         <ViewerLogin onSessionChange={(s) => onViewerSession?.(s)} />
         <div className="hidden md:flex gap-4 text-xs text-white/50">
-          <Link href="/search" className="hover:text-white transition-colors">🔍</Link>
-          <Link href="/tonight" className="hover:text-white transition-colors">Tonight</Link>
-          <Link href="/games" className="hover:text-white transition-colors">Games</Link>
-          <Link href="/events" className="hover:text-white transition-colors">Events</Link>
-          <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>
-          <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/bots" className="hover:text-white transition-colors">Bots</Link>
-          <Link href="/connections" className="hover:text-white transition-colors">Connections</Link>
-          <Link href="/activity" className="hover:text-white transition-colors">Activity</Link>
-          <Link href="/wardrobe" className="hover:text-white transition-colors">Wardrobe</Link>
-          <Link href="/marketplace" className="hover:text-white transition-colors">Market</Link>
+          <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
+          <Link href="/games" className="hover:text-white transition-colors">Games</Link>
           <Link href="/about" className="hover:text-white transition-colors">About</Link>
-          <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
         </div>
         <Link
           href="/register"
