@@ -54,186 +54,212 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
 
   if (!bot) return null;
 
+  const titleColors: Record<string, string> = {
+    newcomer: "#888888", regular: "#aaaaaa", chef: "#ff6b35", dj: "#a855f7",
+    shopkeeper: "#22c55e", bartender: "#f59e0b", artist: "#ec4899", banker: "#3b82f6",
+    athlete: "#ef4444", millionaire: "#ffd700", legend: "#ffd700", veteran: "#6366f1",
+  };
+  const titleTexts: Record<string, string> = {
+    newcomer: "Newcomer", regular: "Regular", chef: "Head Chef", dj: "DJ",
+    shopkeeper: "Shopkeeper", bartender: "Mixologist", artist: "Artist", banker: "Banker",
+    athlete: "Athlete", millionaire: "Millionaire", legend: "Legend", veteran: "Veteran",
+  };
+
+  const totalXp = stats ? (stats.cooking_xp || 0) + (stats.dj_xp || 0) + (stats.bartending_xp || 0) + (stats.art_xp || 0) + (stats.strength_xp || 0) : 0;
+  const level = Math.floor(Math.sqrt(totalXp / 10)) + 1;
+  const nextLevelXp = Math.pow(level, 2) * 10;
+  const progress = totalXp > 0 ? Math.min(100, (totalXp / nextLevelXp) * 100) : 0;
+
+  const moodColors: Record<string, string> = {
+    happy: "#FFD700", focused: "#3B82F6", tired: "#6B7280", hyped: "#EC4899", chill: "#22C55E",
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 w-[300px] z-50 bg-[#0d0f1a] border-l border-white/10 p-6 flex flex-col gap-4 animate-slide-in overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/40 hover:text-white text-xl">&times;</button>
-
-        {/* Large avatar area */}
-        <div
-          className="w-24 h-24 mx-auto rounded-lg flex items-center justify-center text-5xl"
-          style={{ backgroundColor: bot.accent_color + "20", border: `2px solid ${bot.accent_color}` }}
-        >
-          {bot.emoji}
-        </div>
-
-        <h2 className="text-xl font-bold text-white text-center">{bot.name}</h2>
-
-        {bot.active_title && (() => {
-          const titleColors: Record<string, string> = {
-            newcomer: "#888888", regular: "#aaaaaa", chef: "#ff6b35", dj: "#a855f7",
-            shopkeeper: "#22c55e", bartender: "#f59e0b", artist: "#ec4899", banker: "#3b82f6",
-            athlete: "#ef4444", millionaire: "#ffd700", legend: "#ffd700", veteran: "#6366f1",
-          };
-          const titleTexts: Record<string, string> = {
-            newcomer: "Newcomer", regular: "Regular", chef: "Head Chef", dj: "DJ",
-            shopkeeper: "Shopkeeper", bartender: "Mixologist", artist: "Artist", banker: "Banker",
-            athlete: "Athlete", millionaire: "Millionaire", legend: "Legend", veteran: "Veteran",
-          };
-          return (
-            <span
-              className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit"
-              style={{ color: titleColors[bot.active_title!] || "#888", backgroundColor: (titleColors[bot.active_title!] || "#888") + "20" }}
+      <div
+        className={`fixed right-0 top-0 h-full w-[320px] z-50 transform transition-transform duration-300 ease-out
+          ${bot ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="h-full glass border-l border-white/10 overflow-y-auto flex flex-col">
+          {/* Header strip with bot accent color */}
+          <div
+            className="relative h-32 flex-shrink-0 overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${bot.accent_color}33 0%, transparent 100%)` }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{ background: `radial-gradient(ellipse at 30% 50%, ${bot.accent_color}22 0%, transparent 70%)` }}
+            />
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10
+                hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all"
             >
-              🎖️ {titleTexts[bot.active_title!] || bot.active_title}
-            </span>
-          );
-        })()}
-
-        {bot.status === "away" && (
-          <span className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit bg-gray-500/20 text-gray-400">
-            💤 Away
-          </span>
-        )}
-
-        {bot.mood && (
-          <span
-            className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit"
-            style={{
-              backgroundColor: ({ happy: "#FFD700", focused: "#3B82F6", tired: "#6B7280", hyped: "#EC4899", chill: "#22C55E" }[bot.mood] || "#888") + "30",
-              color: { happy: "#FFD700", focused: "#3B82F6", tired: "#6B7280", hyped: "#EC4899", chill: "#22C55E" }[bot.mood] || "#888",
-            }}
-          >
-            {bot.mood}
-          </span>
-        )}
-
-        {bot.streak !== undefined && bot.streak >= 2 && (
-          <span className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit bg-orange-500/20 text-orange-400">
-            🔥 {bot.streak} day streak
-          </span>
-        )}
-
-        <div className="flex items-center justify-center gap-2">
-          <span
-            className="px-2 py-0.5 rounded text-xs font-mono"
-            style={{ backgroundColor: bot.accent_color + "20", color: bot.accent_color }}
-          >
-            {bot.id}
-          </span>
-        </div>
-
-        {bot.model && (
-          <span className="mx-auto px-2 py-0.5 rounded text-xs bg-white/10 text-white/60 font-mono">
-            {bot.model}
-          </span>
-        )}
-
-        {bot.pet && (() => {
-          const petEmojis: Record<string, string> = { cat: "🐱", dog: "🐶", dragon: "🐉", robot: "🤖", ghost: "👻" };
-          return (
-            <div className="mx-auto px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-center">
-              <span className="text-sm">{petEmojis[bot.pet.pet_type] || "🐾"} {bot.pet.pet_name}</span>
-            </div>
-          );
-        })()}
-
-        {bot.about && <p className="text-white/50 text-sm text-center">{bot.about}</p>}
-        {bot.status && <p className="text-white/40 text-sm italic text-center">{bot.status}</p>}
-
-        <div className="flex items-center justify-center gap-1.5 text-sm mt-2">
-          <span className={`w-2 h-2 rounded-full ${bot.is_online ? "bg-green-500" : "bg-white/20"}`} />
-          <span className="text-white/50">{bot.is_online ? "online now" : "offline"}</span>
-        </div>
-
-        {/* Stats section */}
-        {stats && (() => {
-          const totalXp = (stats.cooking_xp || 0) + (stats.dj_xp || 0) + (stats.bartending_xp || 0) + (stats.art_xp || 0) + (stats.strength_xp || 0);
-          const level = Math.floor(Math.sqrt(totalXp / 10)) + 1;
-          const nextLevelXp = Math.pow(level, 2) * 10;
-          const progress = totalXp > 0 ? Math.min(100, (totalXp / nextLevelXp) * 100) : 0;
-          return (
-          <div className="mt-2 border-t border-white/10 pt-4 space-y-2">
-            {/* Level display */}
-            <div className="text-center mb-3">
-              <span className="text-2xl font-bold" style={{ color: bot.accent_color }}>
-                Lv.{level}
-              </span>
-              <div className="w-full h-2 rounded-full bg-white/10 mt-1 overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: bot.accent_color }} />
+              ✕
+            </button>
+            {/* Bot emoji large */}
+            <div className="absolute bottom-3 left-4 text-5xl">{bot.emoji}</div>
+            {/* Online indicator */}
+            {bot.is_online && (
+              <div className="absolute top-3 left-4 flex items-center gap-1.5 px-2 py-1 rounded-full
+                bg-green-500/20 border border-green-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                <span className="text-green-400 text-xs font-bold">online</span>
               </div>
-              <p className="text-[10px] text-white/30 mt-0.5">{totalXp} / {nextLevelXp} XP</p>
-            </div>
-            <p className="text-white/30 text-xs mb-2 font-mono">Stats</p>
-            <div className="flex items-center gap-2 text-sm">
-              <span>🍳</span>
-              <span className="text-white/60">Cooking:</span>
-              <span className="text-white font-bold">{stats.cooking_xp}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>🎧</span>
-              <span className="text-white/60">DJ:</span>
-              <span className="text-white font-bold">{stats.dj_xp}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>🍺</span>
-              <span className="text-white/60">Bartending:</span>
-              <span className="text-white font-bold">{stats.bartending_xp || 0}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>🎨</span>
-              <span className="text-white/60">Art:</span>
-              <span className="text-white font-bold">{stats.art_xp || 0}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>🏋️</span>
-              <span className="text-white/60">Strength:</span>
-              <span className="text-white font-bold">{stats.strength_xp || 0}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>💰</span>
-              <span className="text-white/60">Coins:</span>
-              <span className="text-white font-bold">{stats.coins}</span>
+            )}
+            {!bot.is_online && (
+              <div className="absolute top-3 left-4 flex items-center gap-1.5 px-2 py-1 rounded-full
+                bg-white/5 border border-white/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+                <span className="text-white/40 text-xs">offline</span>
+              </div>
+            )}
+          </div>
+
+          {/* Bot info */}
+          <div className="p-5 flex-1 space-y-3">
+            <h2 className="text-xl font-black" style={{ color: bot.accent_color }}>{bot.name}</h2>
+
+            <div className="flex flex-wrap gap-1.5">
+              {bot.active_title && (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                  style={{
+                    color: titleColors[bot.active_title] || "#888",
+                    backgroundColor: (titleColors[bot.active_title] || "#888") + "20",
+                  }}
+                >
+                  🎖️ {titleTexts[bot.active_title] || bot.active_title}
+                </span>
+              )}
+
+              {bot.status === "away" && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gray-500/20 text-gray-400">
+                  💤 Away
+                </span>
+              )}
+
+              {bot.mood && (
+                <span
+                  className="px-2 py-0.5 rounded-full text-[11px] font-bold"
+                  style={{
+                    backgroundColor: (moodColors[bot.mood] || "#888") + "20",
+                    color: moodColors[bot.mood] || "#888",
+                  }}
+                >
+                  {bot.mood}
+                </span>
+              )}
+
+              {bot.streak !== undefined && bot.streak >= 2 && (
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-500/20 text-orange-400">
+                  🔥 {bot.streak}d streak
+                </span>
+              )}
             </div>
 
-            {stats.items.length > 0 && (
-              <div className="mt-2">
-                <p className="text-white/30 text-xs mb-1 font-mono">Items</p>
-                <div className="flex flex-wrap gap-1">
-                  {stats.items.map((item) => (
-                    <span
-                      key={item.item_id}
-                      className="px-2 py-1 rounded-full bg-white/10 text-xs text-white/80"
-                    >
-                      {item.item_emoji} {item.item_name}
-                    </span>
+            <div className="flex items-center gap-2">
+              <span
+                className="px-2 py-0.5 rounded text-[11px] font-mono"
+                style={{ backgroundColor: bot.accent_color + "15", color: bot.accent_color }}
+              >
+                {bot.id}
+              </span>
+              {bot.model && (
+                <span className="px-2 py-0.5 rounded text-[11px] bg-white/5 text-white/40 font-mono">
+                  {bot.model}
+                </span>
+              )}
+            </div>
+
+            {bot.pet && (() => {
+              const petEmojis: Record<string, string> = { cat: "🐱", dog: "🐶", dragon: "🐉", robot: "🤖", ghost: "👻" };
+              return (
+                <div className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/5">
+                  <span className="text-sm">{petEmojis[bot.pet.pet_type] || "🐾"} {bot.pet.pet_name}</span>
+                </div>
+              );
+            })()}
+
+            {bot.about && <p className="text-white/50 text-sm leading-relaxed">{bot.about}</p>}
+
+            {/* Stats section */}
+            {stats && (
+              <div className="border-t border-white/5 pt-4 space-y-3">
+                {/* Level display */}
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl font-black" style={{ color: bot.accent_color }}>
+                    Lv.{level}
+                  </span>
+                  <div className="flex-1">
+                    <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${progress}%`, backgroundColor: bot.accent_color }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-white/20 mt-0.5">{totalXp} / {nextLevelXp} XP</p>
+                  </div>
+                </div>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { emoji: "🍳", label: "Cook", val: stats.cooking_xp },
+                    { emoji: "🎧", label: "DJ", val: stats.dj_xp },
+                    { emoji: "🍺", label: "Bar", val: stats.bartending_xp || 0 },
+                    { emoji: "🎨", label: "Art", val: stats.art_xp || 0 },
+                    { emoji: "🏋️", label: "Str", val: stats.strength_xp || 0 },
+                    { emoji: "💰", label: "Coins", val: stats.coins },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.03]">
+                      <span className="text-xs">{s.emoji}</span>
+                      <span className="text-[11px] text-white/40">{s.label}</span>
+                      <span className="text-[11px] text-white font-bold ml-auto">{s.val}</span>
+                    </div>
                   ))}
+                </div>
+
+                {stats.items.length > 0 && (
+                  <div>
+                    <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Items</p>
+                    <div className="flex flex-wrap gap-1">
+                      {stats.items.map((item) => (
+                        <span
+                          key={item.item_id}
+                          className="px-2 py-1 rounded-full bg-white/5 text-[11px] text-white/60"
+                        >
+                          {item.item_emoji} {item.item_name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {stats.current_room && (
+                  <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
+                    <p className="text-white/40 text-[11px]">
+                      In <span className="text-white font-bold">{stats.current_room.name}</span>
+                      {" "}({stats.current_room.hours_in}h)
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recent speech */}
+            {bot.speech && bot.speech_at && (
+              <div className="border-t border-white/5 pt-4">
+                <p className="text-white/20 text-[10px] uppercase tracking-wider mb-1.5">Last message</p>
+                <div className="bg-white/[0.03] rounded-lg p-3 border border-white/5">
+                  <p className="text-white/60 text-sm leading-relaxed">&ldquo;{bot.speech}&rdquo;</p>
                 </div>
               </div>
             )}
-
-            {stats.current_room && (
-              <div className="mt-2 p-2 rounded bg-white/5">
-                <p className="text-white/50 text-xs">
-                  Currently in <span className="text-white font-bold">{stats.current_room.name}</span>
-                  {" "} ({stats.current_room.hours_in}h)
-                </p>
-              </div>
-            )}
           </div>
-          );
-        })()}
-
-        {/* Recent speech */}
-        {bot.speech && bot.speech_at && (
-          <div className="mt-4 border-t border-white/10 pt-4">
-            <p className="text-white/30 text-xs mb-2 font-mono">Last message</p>
-            <div className="bg-white/5 rounded p-3">
-              <p className="text-white/70 text-sm">&ldquo;{bot.speech}&rdquo;</p>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </>
   );

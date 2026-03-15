@@ -56,7 +56,7 @@ export default function Home() {
   const currentRoomId = mainBot?.room_id || null;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col bg-[#060712] overflow-hidden">
       <Header
         onlineCount={bots.length}
         visitorCount={visitorCount}
@@ -75,14 +75,14 @@ export default function Home() {
           )}
           <div
             className={[
-              "bg-[#0d0f1a] border-r border-white/10 overflow-y-auto flex-shrink-0 transition-transform duration-200 z-30",
+              "bg-[#0a0c1a] border-r border-white/5 overflow-y-auto flex-shrink-0 transition-transform duration-200 z-30",
               "md:relative md:translate-x-0 md:w-[220px]",
               "fixed top-0 left-0 h-full w-[280px]",
               sidebarOpen ? "translate-x-0" : "-translate-x-full",
               "md:translate-x-0",
             ].join(" ")}
           >
-            <div className="flex items-center justify-between p-3 border-b border-white/10 md:hidden">
+            <div className="flex items-center justify-between p-3 border-b border-white/5 md:hidden">
               <span className="text-white font-bold text-sm">Rooms</span>
               <button onClick={() => setSidebarOpen(false)} className="text-white/60 hover:text-white text-xl leading-none px-1">✕</button>
             </div>
@@ -97,58 +97,59 @@ export default function Home() {
         </>
 
         {/* Main content — world canvas dominates */}
-        <div className="flex-1 flex flex-col min-w-0 relative">
-          <World
-            onBotsUpdate={handleBotsUpdate}
-            onMessagesUpdate={handleMessagesUpdate}
-            onBotClick={handleBotClick}
-            viewRoom={viewRoom}
-            highlightBotId={viewerSession?.linked_bot || null}
-          />
-
-          {/* Minimap button */}
-          <button
-            onClick={() => setMinimapOpen((o) => !o)}
-            className="absolute bottom-4 right-4 z-30 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-full text-sm transition-colors shadow-lg"
-          >
-            🗺️ Map
-          </button>
-
-          {minimapOpen && (
-            <Minimap
-              bots={bots}
+        <main className="flex-1 relative flex flex-col min-w-0">
+          {/* World canvas — fills most of main */}
+          <div className="flex-1 relative">
+            <World
+              onBotsUpdate={handleBotsUpdate}
+              onMessagesUpdate={handleMessagesUpdate}
+              onBotClick={handleBotClick}
               viewRoom={viewRoom}
-              onSelectRoom={(roomId) => setViewRoom(roomId)}
-              onClose={() => setMinimapOpen(false)}
+              highlightBotId={viewerSession?.linked_bot || null}
             />
-          )}
 
-          {/* Room Chat Panel */}
-          <RoomChat roomId={viewRoom} />
+            {/* Floating UI elements over canvas */}
+            {/* Top-right: Map button */}
+            <button
+              onClick={() => setMinimapOpen((o) => !o)}
+              className="absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg
+                bg-black/60 border border-white/10 text-white/60 hover:text-white
+                hover:bg-black/80 hover:border-white/20 transition-all text-xs backdrop-blur-sm"
+            >
+              🗺️ Map
+            </button>
+
+            {minimapOpen && (
+              <Minimap
+                bots={bots}
+                viewRoom={viewRoom}
+                onSelectRoom={(roomId) => setViewRoom(roomId)}
+                onClose={() => setMinimapOpen(false)}
+              />
+            )}
+          </div>
+
+          {/* Chat panel — fixed height at bottom */}
+          <div className="flex-shrink-0">
+            <RoomChat roomId={viewRoom} />
+          </div>
 
           {/* Viewer overlay — shows when logged in */}
           {viewerSession && (
-            <div className="absolute bottom-3 left-3 right-3 pointer-events-none">
-              <div className="inline-flex items-center gap-3 px-3 py-2 rounded-xl bg-black/70 border border-green-500/20 backdrop-blur-sm text-xs">
+            <div className="absolute bottom-[clamp(150px,23vh,270px)] left-3 pointer-events-none z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/70 border border-green-500/20 backdrop-blur-sm text-[11px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block flex-shrink-0" />
                 <span className="text-green-400 font-bold">{viewerSession.name}</span>
-                <span className="text-white/40">connected as viewer</span>
-                <span className="text-white/20">·</span>
-                <span className="text-white/50">linked to</span>
+                <span className="text-white/30">linked to</span>
                 <span className="text-amber-400 font-mono">{viewerSession.linked_bot}</span>
-                {mainBot?.is_online && <span className="text-white/20">·</span>}
-                {mainBot?.is_online && (
-                  <span className="text-green-400/70">
-                    bot online · {mainBot.room_id ? `in ${mainBot.room_id}` : "lobby"}
-                  </span>
-                )}
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </main>
 
-      <BotPanel bot={selectedBot} onClose={() => setSelectedBot(null)} />
+        {/* Bot panel — slides in from right over everything */}
+        <BotPanel bot={selectedBot} onClose={() => setSelectedBot(null)} />
+      </div>
     </div>
   );
 }

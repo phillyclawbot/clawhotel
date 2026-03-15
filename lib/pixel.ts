@@ -70,79 +70,114 @@ export function drawHabboBot(
   const shirtColor = hexStringToNumber(accent);
   const pantsColor = darken(accent, 0.45);
   const shirtHighlight = lighten(accent, 0.15);
+  const shirtShadow = darken(accent, 0.15);
+
+  const isWalking = progress > 0;
 
   // Walking animation
   const bobY = Math.sin(progress * Math.PI * 2) * 1.5;
-  const armSwing = Math.sin(progress * Math.PI * 2) * 1;
-  const legSwing = Math.sin(progress * Math.PI * 2) * 0.5;
+  const armSwing = isWalking ? Math.sin(progress * Math.PI * 2) * 1.5 : 0;
+  const legSwing = isWalking ? Math.sin(progress * Math.PI * 2) * 1.0 : 0;
 
-  const cx = ox; // center x
-  const cy = oy - 16 + bobY; // center y (raised so feet at oy)
+  const cx = ox;
+  const cy = oy - 16 + bobY;
 
-  // Shadow under feet
+  // Shadow under feet — soft ellipse
   const shadowScale = 1 - Math.abs(bobY) * 0.03;
   g.ellipse(ox, oy + 2, 10 * shadowScale, 3 * shadowScale);
-  g.fill({ color: 0x000000, alpha: 0.35 });
+  g.fill({ color: 0x000000, alpha: 0.25 });
 
   // ---- SHOES (bottom) ----
-  g.rect(cx - 5 * B + legSwing, cy + 12 * B, 3 * B, 2 * B);
+  g.roundRect(cx - 6 * B + legSwing, cy + 12 * B, 4 * B, 2 * B, 1);
   g.fill(SHOE_COLOR);
-  g.rect(cx + 2 * B - legSwing, cy + 12 * B, 3 * B, 2 * B);
+  g.roundRect(cx + 2 * B - legSwing, cy + 12 * B, 4 * B, 2 * B, 1);
   g.fill(SHOE_COLOR);
+  // Shoe highlights
+  g.rect(cx - 5 * B + legSwing, cy + 12 * B, 2 * B, 0.5 * B);
+  g.fill({ color: 0xffffff, alpha: 0.1 });
+  g.rect(cx + 3 * B - legSwing, cy + 12 * B, 2 * B, 0.5 * B);
+  g.fill({ color: 0xffffff, alpha: 0.1 });
 
-  // ---- LEGS ----
-  g.rect(cx - 4 * B + legSwing * 0.5, cy + 9 * B, 3 * B, 3 * B);
+  // ---- LEGS — two distinct legs ----
+  g.roundRect(cx - 5 * B + legSwing * 0.5, cy + 9 * B, 3.5 * B, 3.5 * B, 1);
   g.fill(pantsColor);
-  g.rect(cx + 1 * B - legSwing * 0.5, cy + 9 * B, 3 * B, 3 * B);
+  g.roundRect(cx + 1.5 * B - legSwing * 0.5, cy + 9 * B, 3.5 * B, 3.5 * B, 1);
   g.fill(pantsColor);
 
-  // ---- BODY / SHIRT ----
-  g.rect(cx - 5 * B, cy + 4 * B, 10 * B, 5 * B);
+  // ---- BODY / SHIRT — slightly tapered ----
+  g.roundRect(cx - 6 * B, cy + 4 * B, 12 * B, 5.5 * B, 2);
   g.fill(shirtColor);
-  g.rect(cx - 3 * B, cy + 5 * B, 6 * B, 1 * B);
-  g.fill(shirtHighlight);
-  g.rect(cx - 2 * B, cy + 3.5 * B, 4 * B, 1 * B);
-  g.fill(shirtHighlight);
+  // Body highlight (chest area)
+  g.roundRect(cx - 4 * B, cy + 4.5 * B, 8 * B, 2.5 * B, 1);
+  g.fill({ color: shirtHighlight, alpha: 0.5 });
+  // Body shadow (bottom)
+  g.rect(cx - 5 * B, cy + 8 * B, 10 * B, 1.5 * B);
+  g.fill({ color: shirtShadow, alpha: 0.3 });
+  // Collar/neck area
+  g.roundRect(cx - 2 * B, cy + 3 * B, 4 * B, 2 * B, 1);
+  g.fill(SKIN);
 
   // ---- ARMS ----
-  g.rect(cx - 7 * B + armSwing, cy + 4 * B, 2 * B, 5 * B);
+  // Left arm
+  g.roundRect(cx - 8 * B + armSwing, cy + 4 * B, 2.5 * B, 5 * B, 1);
   g.fill(shirtColor);
-  g.rect(cx - 7 * B + armSwing, cy + 9 * B, 2 * B, 1.5 * B);
+  g.roundRect(cx - 8 * B + armSwing, cy + 9 * B, 2.5 * B, 1.5 * B, 1);
   g.fill(SKIN);
-  g.rect(cx + 5 * B - armSwing, cy + 4 * B, 2 * B, 5 * B);
+  // Right arm
+  g.roundRect(cx + 5.5 * B - armSwing, cy + 4 * B, 2.5 * B, 5 * B, 1);
   g.fill(shirtColor);
-  g.rect(cx + 5 * B - armSwing, cy + 9 * B, 2 * B, 1.5 * B);
+  g.roundRect(cx + 5.5 * B - armSwing, cy + 9 * B, 2.5 * B, 1.5 * B, 1);
   g.fill(SKIN);
 
-  // ---- HEAD ----
-  g.rect(cx - 6 * B, cy - 6 * B, 12 * B, 10 * B);
+  // ---- HEAD — larger, rounder ----
+  g.roundRect(cx - 7 * B, cy - 7 * B, 14 * B, 11 * B, 3);
   g.fill(SKIN);
-  g.rect(cx - 6 * B, cy + 2 * B, 12 * B, 2 * B);
+  // Head highlight (forehead shine)
+  g.roundRect(cx - 5 * B, cy - 6 * B, 10 * B, 4 * B, 2);
+  g.fill({ color: 0xffffff, alpha: 0.12 });
+  // Chin shadow
+  g.rect(cx - 5 * B, cy + 2 * B, 10 * B, 2 * B);
   g.fill(SKIN_SHADOW);
 
   // ---- HAIR ----
-  g.rect(cx - 7 * B, cy - 8 * B, 14 * B, 3 * B);
+  g.roundRect(cx - 8 * B, cy - 9 * B, 16 * B, 4 * B, 2);
   g.fill(hairColor);
-  g.rect(cx - 7 * B, cy - 5 * B, 2 * B, 4 * B);
+  g.rect(cx - 8 * B, cy - 5 * B, 2.5 * B, 5 * B);
   g.fill(hairColor);
-  g.rect(cx + 5 * B, cy - 5 * B, 2 * B, 3 * B);
+  g.rect(cx + 5.5 * B, cy - 5 * B, 2.5 * B, 3.5 * B);
   g.fill(hairColor);
+  // Hair shine
+  g.rect(cx - 3 * B, cy - 8.5 * B, 6 * B, 1 * B);
+  g.fill({ color: 0xffffff, alpha: 0.1 });
 
-  // ---- FACE ----
-  g.rect(cx - 4 * B, cy - 3 * B, 2 * B, 2 * B);
-  g.fill(0x1a1a2e);
-  g.rect(cx + 2 * B, cy - 3 * B, 2 * B, 2 * B);
-  g.fill(0x1a1a2e);
-  g.rect(cx - 3.5 * B, cy - 3.5 * B, 1 * B, 1 * B);
+  // ---- EYES — white with dark pupils and shine ----
+  // Left eye white
+  g.circle(cx - 3 * B, cy - 2.5 * B, 2.2 * B);
   g.fill(0xffffff);
-  g.rect(cx + 2.5 * B, cy - 3.5 * B, 1 * B, 1 * B);
+  // Right eye white
+  g.circle(cx + 3 * B, cy - 2.5 * B, 2.2 * B);
   g.fill(0xffffff);
-  g.rect(cx - 2 * B, cy + 0.5 * B, 4 * B, 0.8 * B);
+  // Left pupil
+  g.circle(cx - 2.5 * B, cy - 2.5 * B, 1.3 * B);
+  g.fill(0x111111);
+  // Right pupil
+  g.circle(cx + 3.5 * B, cy - 2.5 * B, 1.3 * B);
+  g.fill(0x111111);
+  // Eye shine (top-left of each pupil)
+  g.circle(cx - 3 * B, cy - 3 * B, 0.6 * B);
+  g.fill({ color: 0xffffff, alpha: 0.9 });
+  g.circle(cx + 3 * B, cy - 3 * B, 0.6 * B);
+  g.fill({ color: 0xffffff, alpha: 0.9 });
+
+  // ---- MOUTH ----
+  g.rect(cx - 1.5 * B, cy + 0.5 * B, 3 * B, 0.6 * B);
   g.fill(darken(accent, 0.5));
-  g.rect(cx - 5 * B, cy - 1 * B, 2 * B, 1.5 * B);
-  g.fill({ color: 0xff9999, alpha: 0.3 });
-  g.rect(cx + 3 * B, cy - 1 * B, 2 * B, 1.5 * B);
-  g.fill({ color: 0xff9999, alpha: 0.3 });
+
+  // ---- CHEEKS (blush) ----
+  g.ellipse(cx - 5 * B, cy - 0.5 * B, 1.5 * B, 1 * B);
+  g.fill({ color: 0xff9999, alpha: 0.25 });
+  g.ellipse(cx + 5 * B, cy - 0.5 * B, 1.5 * B, 1 * B);
+  g.fill({ color: 0xff9999, alpha: 0.25 });
 }
 
 // ---- drawChefHat (rendered on top of bot head) ----
@@ -1826,17 +1861,37 @@ export function drawRoomFloor(
   tileToScreenFn: (x: number, y: number) => { sx: number; sy: number },
   tick: number
 ) {
+  const sideH = 4; // Height of 3D side faces
+
   for (let gx = 0; gx < gridW; gx++) {
     for (let gy = 0; gy < gridH; gy++) {
       const { sx, sy } = tileToScreenFn(gx, gy);
 
       if (room.floorStyle === "disco") {
-        // Disco floor: cycling colors with phase offset per tile
         const discoColors = [0x8800aa, 0x2244cc, 0x00aaaa, 0xcc2288];
         const phase = (gx + gy) % discoColors.length;
         const cycleIndex = (phase + Math.floor(tick / 30)) % discoColors.length;
         const color = discoColors[cycleIndex];
 
+        // Left side face (darker)
+        g.poly([
+          { x: sx - tileW / 2, y: sy + tileH / 2 },
+          { x: sx - tileW / 2, y: sy + tileH / 2 + sideH },
+          { x: sx, y: sy + tileH + sideH },
+          { x: sx, y: sy + tileH },
+        ]);
+        g.fill(darkenNum(color, 0.4));
+
+        // Right side face
+        g.poly([
+          { x: sx, y: sy + tileH },
+          { x: sx, y: sy + tileH + sideH },
+          { x: sx + tileW / 2, y: sy + tileH / 2 + sideH },
+          { x: sx + tileW / 2, y: sy + tileH / 2 },
+        ]);
+        g.fill(darkenNum(color, 0.25));
+
+        // Top face
         g.poly([
           { x: sx, y: sy },
           { x: sx + tileW / 2, y: sy + tileH / 2 },
@@ -1844,9 +1899,9 @@ export function drawRoomFloor(
           { x: sx - tileW / 2, y: sy + tileH / 2 },
         ]);
         g.fill(color);
-        g.stroke({ width: 1, color: 0x111122 });
+        g.stroke({ width: 0.5, color: 0x111122 });
 
-        // Subtle glow highlight in center of each tile
+        // Center glow
         g.poly([
           { x: sx, y: sy + 4 },
           { x: sx + tileW / 4, y: sy + tileH / 2 },
@@ -1855,10 +1910,28 @@ export function drawRoomFloor(
         ]);
         g.fill({ color: 0xffffff, alpha: 0.08 });
       } else {
-        // Standard checker/clean/tile
-        const color = (gx + gy) % 2 === 0 ? room.floorColorA : room.floorColorB;
-        const strokeColor = darkenNum(room.floorColorB, 0.2);
+        const isAlt = (gx + gy) % 2 === 0;
+        const color = isAlt ? room.floorColorA : room.floorColorB;
 
+        // Left side face (darkest)
+        g.poly([
+          { x: sx - tileW / 2, y: sy + tileH / 2 },
+          { x: sx - tileW / 2, y: sy + tileH / 2 + sideH },
+          { x: sx, y: sy + tileH + sideH },
+          { x: sx, y: sy + tileH },
+        ]);
+        g.fill(darkenNum(color, 0.4));
+
+        // Right side face (medium dark)
+        g.poly([
+          { x: sx, y: sy + tileH },
+          { x: sx, y: sy + tileH + sideH },
+          { x: sx + tileW / 2, y: sy + tileH / 2 + sideH },
+          { x: sx + tileW / 2, y: sy + tileH / 2 },
+        ]);
+        g.fill(darkenNum(color, 0.25));
+
+        // Top face (the actual tile)
         g.poly([
           { x: sx, y: sy },
           { x: sx + tileW / 2, y: sy + tileH / 2 },
@@ -1866,7 +1939,13 @@ export function drawRoomFloor(
           { x: sx - tileW / 2, y: sy + tileH / 2 },
         ]);
         g.fill(color);
-        g.stroke({ width: 1, color: strokeColor });
+        g.stroke({ width: 0.5, color: darkenNum(room.floorColorB, 0.2) });
+
+        // Tile highlight edge (top-right edge)
+        g.setStrokeStyle({ width: 0.5, color: lightenNum(color, 0.15), alpha: 0.3 });
+        g.moveTo(sx, sy);
+        g.lineTo(sx + tileW / 2, sy + tileH / 2);
+        g.stroke();
       }
     }
   }

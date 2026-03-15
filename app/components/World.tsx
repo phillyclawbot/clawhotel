@@ -226,7 +226,7 @@ export default function World({
 
       const app = new PIXI.Application();
       await app.init({
-        background: 0x0d0d1a,
+        background: 0x060712,
         resizeTo: canvasRef.current,
         antialias: false,
         resolution: window.devicePixelRatio || 1,
@@ -240,6 +240,14 @@ export default function World({
 
       canvasRef.current.appendChild(app.canvas as HTMLCanvasElement);
       appRef.current = app;
+
+      // Subtle radial gradient background
+      const bgGfx = new PIXI.Graphics();
+      bgGfx.rect(0, 0, app.screen.width, app.screen.height);
+      bgGfx.fill(0x060712);
+      bgGfx.circle(app.screen.width / 2, app.screen.height / 2, Math.max(app.screen.width, app.screen.height) * 0.7);
+      bgGfx.fill({ color: 0x0d1030, alpha: 0.4 });
+      app.stage.addChild(bgGfx);
 
       const world = new PIXI.Container();
       worldContainerRef.current = world;
@@ -520,16 +528,23 @@ export default function World({
             container.alpha = 0.4;
           }
 
-          // Mood aura
+          // Mood aura — layered glow
           if (lb.data.mood) {
             const moodColors: Record<string, number> = {
               happy: 0xFFD700, focused: 0x3B82F6, tired: 0x6B7280, hyped: 0xEC4899, chill: 0x22C55E,
             };
             const moodColor = moodColors[lb.data.mood] || 0xFFD700;
-            const moodAlpha = 0.3 + Math.sin(frameCount * 0.06) * 0.15;
+            const pulse = 0.3 + Math.sin(frameCount * 0.05) * 0.15;
             const moodGfx = new PIXI.Graphics();
-            moodGfx.ellipse(0, 8, 18, 9);
-            moodGfx.fill({ color: moodColor, alpha: moodAlpha });
+            // Outer glow (large, very transparent)
+            moodGfx.ellipse(0, 12, 22, 8);
+            moodGfx.fill({ color: moodColor, alpha: pulse * 0.3 });
+            // Inner glow (smaller, more opaque)
+            moodGfx.ellipse(0, 12, 14, 5);
+            moodGfx.fill({ color: moodColor, alpha: pulse * 0.6 });
+            // Core (brightest)
+            moodGfx.ellipse(0, 12, 7, 3);
+            moodGfx.fill({ color: moodColor, alpha: pulse * 0.4 });
             container.addChild(moodGfx);
           }
 
@@ -675,10 +690,13 @@ export default function World({
               bubbleContainer.alpha = alpha;
 
               const bubble = new PIXI.Graphics();
+              // Drop shadow
+              bubble.roundRect(-bw / 2 + 2, -bh + bubbleY - 6, bw, bh, 10);
+              bubble.fill({ color: 0x000000, alpha: 0.15 });
               // Main rounded rect
-              bubble.roundRect(-bw / 2, -bh + bubbleY - 8, bw, bh, 8);
+              bubble.roundRect(-bw / 2, -bh + bubbleY - 8, bw, bh, 10);
               bubble.fill({ color: 0xffffff });
-              bubble.stroke({ width: 1, color: 0xcccccc });
+              bubble.stroke({ width: 1.5, color: accentNum, alpha: 0.4 });
               // Triangle pointer
               bubble.poly([
                 { x: -4, y: bubbleY - 8 },
@@ -686,8 +704,7 @@ export default function World({
                 { x: 0, y: bubbleY - 2 },
               ]);
               bubble.fill({ color: 0xffffff });
-              // Accent color border on triangle
-              bubble.stroke({ width: 1, color: accentNum });
+              bubble.stroke({ width: 1, color: accentNum, alpha: 0.4 });
               bubbleContainer.addChild(bubble);
 
               speechText.y = bubbleY - 10;
@@ -880,7 +897,7 @@ export default function World({
   const ambient = ambientConfig[viewRoom] || ambientConfig.lobby;
 
   return (
-    <div ref={canvasRef} className="flex-1 w-full bg-[#0d0d1a] relative">
+    <div ref={canvasRef} className="flex-1 w-full bg-[#060712] relative">
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center text-white/30 text-sm">
           Loading world...
