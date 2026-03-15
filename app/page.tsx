@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Header from "./components/Header";
-import World from "./components/World";
+const World = dynamic(() => import("./components/World3D"), { ssr: false });
 import BotPanel from "./components/BotPanel";
 import RoomPanel from "./components/RoomPanel";
 import Minimap from "./components/Minimap";
