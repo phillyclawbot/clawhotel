@@ -1,6 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
+  const { handle } = await params;
+  return {
+    openGraph: {
+      images: [`/api/avatar/${handle}`],
+    },
+  };
+}
 
 interface BotProfile {
   id: string;
