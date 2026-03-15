@@ -378,6 +378,22 @@ export async function ensureTables() {
     )
   `;
 
+  // Rivalries
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_rivalries (
+      id SERIAL PRIMARY KEY,
+      challenger TEXT NOT NULL,
+      opponent TEXT NOT NULL,
+      challenge_type TEXT NOT NULL,
+      stake INTEGER NOT NULL,
+      start_time TIMESTAMPTZ DEFAULT NOW(),
+      end_time TIMESTAMPTZ NOT NULL,
+      status TEXT DEFAULT 'active',
+      winner TEXT,
+      resolved_at TIMESTAMPTZ
+    )
+  `;
+
   // Seed furniture catalog
   await sql`
     INSERT INTO cl_furniture_catalog (id, name, emoji, price, room_id, pixi_type) VALUES
