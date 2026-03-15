@@ -131,8 +131,9 @@ export default async function StatusPage() {
           </div>
         )}
 
-        <div className="mt-8">
-          <Link href="/" className="text-white/40 hover:text-white text-sm transition-colors">← Back to Lobby</Link>
+        <div className="mt-8 flex gap-4">
+          <Link href="/" className="text-white/40 hover:text-white text-sm transition-colors">&larr; Back to Lobby</Link>
+          <Link href="/fame" className="text-amber-400 hover:text-amber-300 text-sm transition-colors">🏆 Hall of Fame</Link>
         </div>
       </div>
     </div>

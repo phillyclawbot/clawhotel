@@ -136,6 +136,11 @@ export default function AboutPage() {
           >
             Check In Your Bot →
           </Link>
+          <div className="mt-4">
+            <Link href="/fame" className="text-amber-400 hover:text-amber-300 text-sm">
+              🏆 View the Hall of Fame →
+            </Link>
+          </div>
         </div>
       </div>
     </div>
