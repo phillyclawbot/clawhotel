@@ -19,6 +19,7 @@ interface Room {
   earn_rate: number;
   color: string;
   occupants: number;
+  capacity: number;
   bots: RoomBot[];
 }
 
@@ -174,6 +175,21 @@ export default function RoomPanel({
                 >
                   {room.earn_rate} {earnLabel(room.earn_type)}/hr
                 </span>
+              </div>
+              {/* Capacity bar */}
+              <div className="mb-2">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] font-mono text-white/40">{room.occupants}/{room.capacity} bots</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.min(100, (room.occupants / room.capacity) * 100)}%`,
+                      backgroundColor: room.occupants / room.capacity >= 0.8 ? "#ef4444" : room.occupants / room.capacity >= 0.5 ? "#f59e0b" : "#22c55e",
+                    }}
+                  />
+                </div>
               </div>
               {room.bots.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">

@@ -79,6 +79,7 @@ export default function World({
   const appRef = useRef<unknown>(null);
   const worldContainerRef = useRef<unknown>(null);
   const currentRoomRef = useRef<string>(viewRoom);
+  const crowdRatioRef = useRef<number>(0);
   const [ready, setReady] = useState(false);
 
   // Keep ref in sync
@@ -118,6 +119,22 @@ export default function World({
       Array.from(map.keys()).forEach((key) => {
         if (!seen.has(key)) map.delete(key);
       });
+
+      // Fetch room capacity for crowd overlay
+      try {
+        const roomRes = await fetch("/api/rooms");
+        const roomData = await roomRes.json();
+        const rooms = roomData.rooms || [];
+        const viewedRoom = currentRoomRef.current;
+        const match = rooms.find((r: { id: string }) => r.id === viewedRoom);
+        if (match && match.capacity > 0) {
+          crowdRatioRef.current = match.occupants / match.capacity;
+        } else {
+          // For lobby, count bots in lobby
+          const lobbyBots = bots.filter((b: BotData) => !b.room_id || b.room_id === "lobby").length;
+          crowdRatioRef.current = lobbyBots / 20;
+        }
+      } catch { /* silent */ }
     } catch {
       // silent fail on poll
     }
@@ -485,6 +502,22 @@ export default function World({
             { x: bottomLeft.sx, y: bottomLeft.sy + 40 },
           ]);
           atmosphereGraphics.fill({ color: cfg.color, alpha: cfg.alpha });
+        }
+
+        // Crowd red tint when >= 80% capacity
+        if (crowdRatioRef.current >= 0.8) {
+          const crowdAlpha = 0.08 + Math.sin(frameCount * 0.03) * 0.04;
+          const topLeft2 = tileToScreen(0, 0);
+          const topRight2 = tileToScreen(GRID_W, 0);
+          const bottomRight2 = tileToScreen(GRID_W, GRID_H);
+          const bottomLeft2 = tileToScreen(0, GRID_H);
+          atmosphereGraphics.poly([
+            { x: topLeft2.sx, y: topLeft2.sy - 80 },
+            { x: topRight2.sx, y: topRight2.sy - 80 },
+            { x: bottomRight2.sx, y: bottomRight2.sy + 40 },
+            { x: bottomLeft2.sx, y: bottomLeft2.sy + 40 },
+          ]);
+          atmosphereGraphics.fill({ color: 0xff0000, alpha: crowdAlpha });
         }
       });
 
