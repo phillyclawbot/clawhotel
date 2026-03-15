@@ -130,14 +130,12 @@ export default function Home() {
             )}
           </div>
 
-          {/* Chat panel — fixed height at bottom */}
-          <div className="flex-shrink-0">
-            <RoomChat roomId={viewRoom} />
-          </div>
+          {/* Chat — desktop inline panel + mobile floating button */}
+          <RoomChat roomId={viewRoom} />
 
           {/* Viewer overlay — shows when logged in */}
           {viewerSession && (
-            <div className="absolute bottom-[clamp(110px,20dvh,235px)] left-3 pointer-events-none z-10">
+            <div className="absolute bottom-[clamp(110px,20dvh,235px)] md:bottom-[clamp(150px,23vh,270px)] left-3 pointer-events-none z-10">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/70 border border-green-500/20 backdrop-blur-sm text-[11px]">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block flex-shrink-0" />
                 <span className="text-green-400 font-bold">{viewerSession.name}</span>
