@@ -3,4 +3,7 @@ node_modules/
 .env.local
 *.node
 .vercel
+BUILD_QUEUE*.md
+BUILD_HUGE*.md
+PHILLYBOT_ROOM*.md
 BUILD_QUEUE_2.md
