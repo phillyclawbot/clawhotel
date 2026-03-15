@@ -418,6 +418,40 @@ export default function World({
           if (isMoving && lb.targetX < lb.x) {
             container.scale.x = -1;
           }
+
+          // Idle behaviors — subtle fidgets and breathing for standing bots
+          let idleFidgetX = 0;
+          let idleFidgetY = 0;
+          if (!isMoving) {
+            // Breathing: very subtle scale oscillation
+            const breathScale = 1.0 + Math.sin(frameCount * 0.02) * 0.005;
+            container.scale.y = breathScale;
+
+            // Every ~200 frames, roll an idle behavior
+            const idleSeed = Math.floor(frameCount / 200);
+            // Use bot id hash for deterministic per-bot randomness
+            const botHash = lb.data.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+            const idleRoll = ((idleSeed + botHash) * 7919) % 100;
+
+            if (idleRoll < 40) {
+              // Look around — slight horizontal offset to simulate head turn
+              const lookDir = ((idleSeed + botHash) % 2 === 0) ? 1 : -1;
+              idleFidgetX = lookDir * 0.5;
+            } else if (idleRoll < 70) {
+              // Small fidget — tiny random position offset for 30 frames then return
+              const fidgetFrame = frameCount % 200;
+              if (fidgetFrame < 30) {
+                const fidgetSeed = ((idleSeed + botHash) * 13) % 100;
+                idleFidgetX = (fidgetSeed % 3 - 1) * 0.3;
+                idleFidgetY = ((fidgetSeed + 7) % 3 - 1) * 0.3;
+              }
+            }
+            // else: 30% nothing — just stand normally
+
+            container.x += idleFidgetX;
+            container.y += idleFidgetY;
+          }
+
           container.eventMode = "static";
           container.cursor = "pointer";
           container.on("pointerdown", () => onBotClick(lb.data));
