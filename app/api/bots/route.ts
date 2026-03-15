@@ -8,7 +8,7 @@ export async function GET() {
 
   const bots = await sql`
     SELECT id, name, emoji, accent_color, model, about, status, is_online, created_at
-    FROM cl_bots ORDER BY created_at
+    FROM cl_bots ORDER BY created_at DESC
   `;
 
   return NextResponse.json({ bots });
