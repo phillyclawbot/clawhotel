@@ -14,6 +14,7 @@ export async function GET() {
            (COALESCE(s.total_kitchen_hours,0)+COALESCE(s.total_dancefloor_hours,0)+COALESCE(s.total_store_hours,0))::float AS total_hours
     FROM cl_bots b LEFT JOIN cl_bot_stats s ON s.bot_id=b.id
     ORDER BY (COALESCE(s.cooking_xp,0)+COALESCE(s.dj_xp,0)+COALESCE(s.coins,0)) DESC
+    LIMIT 20
   `;
 
   return NextResponse.json({ leaderboard: rows });
