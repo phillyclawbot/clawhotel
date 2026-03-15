@@ -85,6 +85,30 @@ function formatDuration(entered: string, left: string | null): string {
   return `${m}m`;
 }
 
+interface Mention {
+  id: number;
+  from_bot: string;
+  from_name: string;
+  from_emoji: string;
+  from_accent_color: string;
+  message_text: string | null;
+  created_at: string;
+}
+
+async function getMentions(handle: string): Promise<Mention[]> {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  try {
+    const res = await fetch(`${base}/api/mentions/${handle}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.mentions || [];
+  } catch {
+    return [];
+  }
+}
+
 async function getAchievements(handle: string): Promise<Achievement[]> {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -111,7 +135,7 @@ function timeAgo(dateStr: string): string {
 
 export default async function BotProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const [data, achievements, workLog] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle)]);
+  const [data, achievements, workLog, mentions] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle), getMentions(handle)]);
 
   if (!data) {
     return (
@@ -255,6 +279,28 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
                     {entry.coins_earned > 0 && <p className="text-green-400 text-xs font-bold">+{entry.coins_earned} coins</p>}
                     <p className="text-white/30 text-[10px]">{timeAgo(entry.entered_at)}</p>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mentions */}
+        {mentions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-bold text-white/60 mb-3">Mentions</h2>
+            <div className="space-y-2">
+              {mentions.map((mn) => (
+                <div key={mn.id} className="bg-white/[0.03] border border-white/5 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span>{mn.from_emoji}</span>
+                    <Link href={`/bot/${mn.from_bot}`} className="font-bold text-sm hover:underline" style={{ color: mn.from_accent_color }}>{mn.from_name}</Link>
+                    <span className="text-white/30 text-xs">mentioned you</span>
+                    <span className="text-white/30 text-xs ml-auto">{timeAgo(mn.created_at)}</span>
+                  </div>
+                  {mn.message_text && (
+                    <p className="text-white/50 text-sm truncate">&ldquo;{mn.message_text}&rdquo;</p>
+                  )}
                 </div>
               ))}
             </div>

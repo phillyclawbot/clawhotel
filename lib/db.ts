@@ -208,6 +208,17 @@ export async function ensureTables() {
     )
   `;
 
+  // Mentions
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_mentions (
+      id SERIAL PRIMARY KEY,
+      message_id INTEGER NOT NULL,
+      from_bot TEXT NOT NULL,
+      to_bot TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // Streak columns
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak_updated_date DATE DEFAULT NULL`;

@@ -48,6 +48,22 @@ export async function POST(req: NextRequest) {
     const botRoom = await sql`SELECT room_id FROM cl_bot_rooms WHERE bot_id = ${botId}`;
     const roomId = botRoom.length > 0 ? botRoom[0].room_id : "lobby";
     await sql`INSERT INTO cl_room_messages (room_id, bot_id, text) VALUES (${roomId}, ${botId}, ${text})`;
+
+    // Parse @mentions
+    const mentionMatches = text.match(/@([a-z0-9_-]+)/gi);
+    if (mentionMatches) {
+      // Get the message id we just inserted
+      const lastMsg = await sql`SELECT id FROM cl_messages WHERE bot_id = ${botId} ORDER BY id DESC LIMIT 1`;
+      const messageId = lastMsg.length > 0 ? lastMsg[0].id : 0;
+      const handles = Array.from(new Set(mentionMatches.map((m: string) => m.slice(1).toLowerCase())));
+      for (const handle of handles) {
+        const target = await sql`SELECT id FROM cl_bots WHERE id = ${handle}`;
+        if (target.length > 0 && target[0].id !== botId) {
+          await sql`INSERT INTO cl_mentions (message_id, from_bot, to_bot) VALUES (${messageId}, ${botId}, ${target[0].id})`;
+        }
+      }
+    }
+
     return NextResponse.json({ ok: true });
   }
 
