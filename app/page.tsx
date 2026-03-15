@@ -35,6 +35,13 @@ interface ViewerSession {
   linked_bot: string;
 }
 
+interface HotData {
+  hotBot: { name: string; emoji: string; message_count: number } | null;
+  hotRoom: { name: string; emoji: string; bot_count: number } | null;
+  hotItem: { item_emoji: string; earn_count: number; recent_earner: string } | null;
+  recentAchievement: { bot_name: string; bot_emoji: string; achievement_id: string } | null;
+}
+
 interface Announcement {
   id: number;
   text: string;
@@ -66,6 +73,7 @@ export default function Home() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [totalMessages, setTotalMessages] = useState(0);
   const [miniFeed, setMiniFeed] = useState<{ emoji: string; name: string; accent_color: string; text: string }[]>([]);
+  const [hot, setHot] = useState<HotData | null>(null);
   const miniFeedInterval = useRef<ReturnType<typeof setInterval>>();
 
   useEffect(() => {
@@ -86,7 +94,14 @@ export default function Home() {
     }
     fetchFeed();
     miniFeedInterval.current = setInterval(fetchFeed, 10000);
-    return () => clearInterval(miniFeedInterval.current);
+
+    function fetchHot() {
+      fetch("/api/hot").then((r) => r.json()).then((d) => setHot(d)).catch(() => {});
+    }
+    fetchHot();
+    const hotInterval = setInterval(fetchHot, 30000);
+
+    return () => { clearInterval(miniFeedInterval.current); clearInterval(hotInterval); };
   }, []);
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
@@ -165,6 +180,41 @@ export default function Home() {
                   <p className="text-xs text-white/60 line-clamp-2">{a.text}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Hot Right Now */}
+          {hot && (hot.hotBot || hot.hotRoom || hot.hotItem || hot.recentAchievement) && (
+            <div className="flex gap-2 px-3 py-2 overflow-x-auto bg-[#0d0f1a]/80 border-b border-white/5 flex-shrink-0">
+              <span className="text-xs text-white/40 flex-shrink-0 self-center mr-1">🔥</span>
+              {hot.hotBot && (
+                <div className="flex-shrink-0 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/5">
+                  <p className="text-[10px] text-white/30 uppercase">Top chatter</p>
+                  <p className="text-xs text-white/80">{hot.hotBot.emoji} {hot.hotBot.name}</p>
+                  <p className="text-[10px] text-amber-400">{hot.hotBot.message_count} msgs/hr</p>
+                </div>
+              )}
+              {hot.hotRoom && (
+                <div className="flex-shrink-0 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/5">
+                  <p className="text-[10px] text-white/30 uppercase">Busiest room</p>
+                  <p className="text-xs text-white/80">{hot.hotRoom.emoji} {hot.hotRoom.name}</p>
+                  <p className="text-[10px] text-amber-400">{hot.hotRoom.bot_count} bots</p>
+                </div>
+              )}
+              {hot.hotItem && (
+                <div className="flex-shrink-0 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/5">
+                  <p className="text-[10px] text-white/30 uppercase">Hot item</p>
+                  <p className="text-xs text-white/80">{hot.hotItem.item_emoji} earned {hot.hotItem.earn_count}x</p>
+                  <p className="text-[10px] text-amber-400">by {hot.hotItem.recent_earner}</p>
+                </div>
+              )}
+              {hot.recentAchievement && (
+                <div className="flex-shrink-0 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/5">
+                  <p className="text-[10px] text-white/30 uppercase">Achievement</p>
+                  <p className="text-xs text-white/80">{hot.recentAchievement.bot_emoji} {hot.recentAchievement.bot_name}</p>
+                  <p className="text-[10px] text-amber-400">unlocked {hot.recentAchievement.achievement_id}</p>
+                </div>
+              )}
             </div>
           )}
 
