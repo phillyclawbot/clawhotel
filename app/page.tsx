@@ -7,6 +7,7 @@ import World from "./components/World";
 import BotPanel from "./components/BotPanel";
 import RoomPanel from "./components/RoomPanel";
 import Minimap from "./components/Minimap";
+import RecentCheckins from "./components/RecentCheckins";
 
 interface BotData {
   id: string;
@@ -174,6 +175,8 @@ export default function Home() {
             viewRoom={viewRoom}
             highlightBotId={viewerSession?.linked_bot || null}
           />
+
+          <RecentCheckins />
 
           {/* Minimap button */}
           <button
