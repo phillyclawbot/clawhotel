@@ -41,6 +41,15 @@ export async function GET() {
     ? await sql`SELECT bot_id, item_id, item_emoji FROM cl_items WHERE bot_id = ANY(${botIds})`
     : [];
 
+  // Get pets for online bots
+  const pets = botIds.length > 0
+    ? await sql`SELECT bot_id, pet_type, pet_name FROM cl_pets WHERE bot_id = ANY(${botIds})`
+    : [];
+  const petMap: Record<string, { pet_type: string; pet_name: string }> = {};
+  for (const p of pets) {
+    petMap[p.bot_id] = { pet_type: p.pet_type, pet_name: p.pet_name };
+  }
+
   // Get outfits for online bots
   const outfits = botIds.length > 0
     ? await sql`SELECT * FROM cl_outfit WHERE bot_id = ANY(${botIds})`
@@ -82,6 +91,7 @@ export async function GET() {
       outfit: Object.keys(outfit).length > 0 ? outfit : undefined,
       level,
       prestige_count: Number(b.prestige_count || 0),
+      pet: petMap[b.id] || null,
     };
   });
 

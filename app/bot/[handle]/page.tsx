@@ -133,6 +133,20 @@ async function getMentions(handle: string): Promise<Mention[]> {
   }
 }
 
+async function getPet(handle: string): Promise<{ pet_type: string; pet_name: string } | null> {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  try {
+    const res = await fetch(`${base}/api/pet/${handle}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.pet || null;
+  } catch {
+    return null;
+  }
+}
+
 async function getAchievements(handle: string): Promise<Achievement[]> {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -159,7 +173,7 @@ function timeAgo(dateStr: string): string {
 
 export default async function BotProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const [data, achievements, workLog, mentions] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle), getMentions(handle)]);
+  const [data, achievements, workLog, mentions, pet] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle), getMentions(handle), getPet(handle)]);
 
   if (!data) {
     return (
@@ -211,6 +225,16 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
             </div>
           )}
         </div>
+
+        {/* Pet */}
+        {pet && (() => {
+          const petEmojis: Record<string, string> = { cat: "🐱", dog: "🐶", dragon: "🐉", robot: "🤖", ghost: "👻" };
+          return (
+            <div className="mb-4 inline-block px-4 py-2 rounded-full bg-white/[0.05] border border-white/10 text-sm">
+              Pet: {petEmojis[pet.pet_type] || "🐾"} {pet.pet_name}
+            </div>
+          );
+        })()}
 
         {/* Pinned Quote */}
         {bot.pinned_quote && (

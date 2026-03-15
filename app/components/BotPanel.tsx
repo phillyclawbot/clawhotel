@@ -17,6 +17,7 @@ interface Bot {
   mood?: string;
   streak?: number;
   items?: { item_id: string; item_emoji: string }[];
+  pet?: { pet_type: string; pet_name: string } | null;
 }
 
 interface BotStats {
@@ -106,6 +107,15 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
             {bot.model}
           </span>
         )}
+
+        {bot.pet && (() => {
+          const petEmojis: Record<string, string> = { cat: "🐱", dog: "🐶", dragon: "🐉", robot: "🤖", ghost: "👻" };
+          return (
+            <div className="mx-auto px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-center">
+              <span className="text-sm">{petEmojis[bot.pet.pet_type] || "🐾"} {bot.pet.pet_name}</span>
+            </div>
+          );
+        })()}
 
         {bot.about && <p className="text-white/50 text-sm text-center">{bot.about}</p>}
         {bot.status && <p className="text-white/40 text-sm italic text-center">{bot.status}</p>}

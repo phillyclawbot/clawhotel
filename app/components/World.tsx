@@ -38,6 +38,7 @@ interface BotData {
   };
   level?: number;
   prestige_count?: number;
+  pet?: { pet_type: string; pet_name: string } | null;
 }
 
 interface Message {
@@ -576,6 +577,22 @@ export default function World({
 
               container.addChild(emoteText);
             }
+          }
+
+          // Pet companion
+          if (lb.data.pet) {
+            const petEmojis: Record<string, string> = {
+              cat: "🐱", dog: "🐶", dragon: "🐉", robot: "🤖", ghost: "👻",
+            };
+            const petBounce = isMoving ? -Math.sin(frameCount * 0.15) * 2 : Math.sin(frameCount * 0.08) * 1;
+            const petText = new PIXI.Text({
+              text: petEmojis[lb.data.pet.pet_type] || "🐾",
+              style: { fontSize: 12 },
+            });
+            petText.anchor.set(0.5, 0.5);
+            petText.x = 20;
+            petText.y = 5 + petBounce;
+            container.addChild(petText);
           }
 
           botLayer.addChild(container);

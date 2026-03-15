@@ -342,6 +342,17 @@ export async function ensureTables() {
     )
   `;
 
+  // Pets
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_pets (
+      bot_id TEXT PRIMARY KEY,
+      pet_type TEXT NOT NULL,
+      pet_name TEXT NOT NULL,
+      pet_color INTEGER NOT NULL,
+      acquired_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // Seed clothing catalog
   await sql`
     INSERT INTO cl_clothing_catalog (id, name, slot, emoji, color, unlock_type, unlock_value, description) VALUES
