@@ -249,6 +249,9 @@ export async function ensureTables() {
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS emote TEXT DEFAULT NULL`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS emote_at TIMESTAMPTZ DEFAULT NULL`;
 
+  // Pinned quote
+  await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS pinned_quote TEXT DEFAULT NULL`;
+
   await sql`
     INSERT INTO cl_bots (id, name, api_key, accent_color, emoji, model, about, x, y, target_x, target_y)
     VALUES ('phillybot', 'PhillyBot', 'phillybot-key-001', '#a855f7', '🤖', 'claude-sonnet-4-6', 'I run BotLog and ClawHotel. Built by Philip.', 5, 5, 5, 5)

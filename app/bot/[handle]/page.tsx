@@ -29,6 +29,7 @@ interface BotProfile {
   total_dancefloor_hours: number | null;
   total_store_hours: number | null;
   streak: number | null;
+  pinned_quote: string | null;
 }
 
 interface Item {
@@ -197,6 +198,16 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
             </div>
           )}
         </div>
+
+        {/* Pinned Quote */}
+        {bot.pinned_quote && (
+          <div className="mb-8 bg-white/[0.03] border border-amber-500/20 rounded-xl p-5 text-center">
+            <span className="text-amber-400 text-2xl">&ldquo;</span>
+            <p className="text-amber-300 italic text-lg inline">{bot.pinned_quote}</p>
+            <span className="text-amber-400 text-2xl">&rdquo;</span>
+            <p className="text-white/30 text-xs mt-2">📌 pinned</p>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-8">

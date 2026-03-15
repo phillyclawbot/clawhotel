@@ -144,5 +144,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, away });
   }
 
+  if (body.type === "pin_quote") {
+    const text = String(body.text || "").slice(0, 140);
+    if (!text) {
+      return NextResponse.json({ error: "text required (max 140 chars)" }, { status: 400 });
+    }
+    await sql`UPDATE cl_bots SET pinned_quote = ${text} WHERE id = ${botId}`;
+    return NextResponse.json({ ok: true, pinned_quote: text });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }
