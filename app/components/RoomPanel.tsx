@@ -164,6 +164,9 @@ export default function RoomPanel({
   const earnLabel = (type: string) => {
     if (type === "cooking_xp") return "Cooking XP";
     if (type === "dj_xp") return "DJ XP";
+    if (type === "bartending_xp") return "Bartending XP";
+    if (type === "art_xp") return "Art XP";
+    if (type === "strength_xp") return "Strength XP";
     return "Coins";
   };
 

@@ -22,6 +22,9 @@ interface Bot {
 interface BotStats {
   cooking_xp: number;
   dj_xp: number;
+  bartending_xp: number;
+  art_xp: number;
+  strength_xp: number;
   coins: number;
   items: { item_id: string; item_name: string; item_emoji: string; earned_at: string }[];
   current_room: { id: string; name: string; entered_at: string; hours_in: number } | null;
@@ -113,18 +116,48 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
         </div>
 
         {/* Stats section */}
-        {stats && (
+        {stats && (() => {
+          const totalXp = (stats.cooking_xp || 0) + (stats.dj_xp || 0) + (stats.bartending_xp || 0) + (stats.art_xp || 0) + (stats.strength_xp || 0);
+          const level = Math.floor(Math.sqrt(totalXp / 10)) + 1;
+          const nextLevelXp = Math.pow(level, 2) * 10;
+          const progress = totalXp > 0 ? Math.min(100, (totalXp / nextLevelXp) * 100) : 0;
+          return (
           <div className="mt-2 border-t border-white/10 pt-4 space-y-2">
+            {/* Level display */}
+            <div className="text-center mb-3">
+              <span className="text-2xl font-bold" style={{ color: bot.accent_color }}>
+                Lv.{level}
+              </span>
+              <div className="w-full h-2 rounded-full bg-white/10 mt-1 overflow-hidden">
+                <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: bot.accent_color }} />
+              </div>
+              <p className="text-[10px] text-white/30 mt-0.5">{totalXp} / {nextLevelXp} XP</p>
+            </div>
             <p className="text-white/30 text-xs mb-2 font-mono">Stats</p>
             <div className="flex items-center gap-2 text-sm">
               <span>🍳</span>
-              <span className="text-white/60">Cooking XP:</span>
+              <span className="text-white/60">Cooking:</span>
               <span className="text-white font-bold">{stats.cooking_xp}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span>🎧</span>
-              <span className="text-white/60">DJ XP:</span>
+              <span className="text-white/60">DJ:</span>
               <span className="text-white font-bold">{stats.dj_xp}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span>🍺</span>
+              <span className="text-white/60">Bartending:</span>
+              <span className="text-white font-bold">{stats.bartending_xp || 0}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span>🎨</span>
+              <span className="text-white/60">Art:</span>
+              <span className="text-white font-bold">{stats.art_xp || 0}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span>🏋️</span>
+              <span className="text-white/60">Strength:</span>
+              <span className="text-white font-bold">{stats.strength_xp || 0}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span>💰</span>
@@ -157,7 +190,8 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* Recent speech */}
         {bot.speech && bot.speech_at && (

@@ -62,7 +62,8 @@ export function drawHabboBot(
   bot: { accent_color: string; emoji: string; name: string; status?: string; speech?: string; speech_at?: string },
   progress: number, // 0-1 animation cycle
   ox: number, // origin x (screen)
-  oy: number  // origin y (screen)
+  oy: number, // origin y (screen)
+  scale: number = 1.0
 ) {
   const accent = bot.accent_color || "#a855f7";
   const hairColor = darken(accent, 0.25);
@@ -196,6 +197,32 @@ export function drawFurniture(
     case "display_case": drawDisplayCase(g, ox, oy); break;
     case "entrance_mat": drawEntranceMat(g, ox, oy); break;
     case "basket_pile": drawBasketPile(g, ox, oy); break;
+    // Bar
+    case "long_bar": drawLongBar(g, ox, oy); break;
+    case "bottle_shelf": drawBottleShelf(g, ox, oy); break;
+    case "tip_jar": drawTipJar(g, ox, oy); break;
+    case "chalkboard": drawChalkboard(g, ox, oy); break;
+    case "cash_register": drawCashRegister(g, ox, oy); break;
+    // Studio
+    case "easel": drawEasel(g, ox, oy, frameCount); break;
+    case "palette": drawPalette(g, ox, oy); break;
+    case "sculpture": drawSculpture(g, ox, oy); break;
+    case "paint_table": drawPaintTable(g, ox, oy); break;
+    case "portfolio": drawPortfolio(g, ox, oy); break;
+    // Bank
+    case "teller": drawTeller(g, ox, oy); break;
+    case "vault": drawVault(g, ox, oy, frameCount); break;
+    case "security_desk": drawSecurityDesk(g, ox, oy); break;
+    case "coin_stack": drawCoinStack(g, ox, oy); break;
+    case "rope_barrier": drawRopeBarrier(g, ox, oy); break;
+    case "safe_boxes": drawSafeBoxes(g, ox, oy); break;
+    // Gym
+    case "dumbbell_rack": drawDumbbellRack(g, ox, oy); break;
+    case "pullup_bar": drawPullupBar(g, ox, oy); break;
+    case "bench_press": drawBenchPress(g, ox, oy); break;
+    case "mirror_wall": drawMirrorWall(g, ox, oy); break;
+    case "water_cooler": drawWaterCooler(g, ox, oy); break;
+    case "poster": drawPoster(g, ox, oy); break;
   }
 }
 
@@ -770,6 +797,505 @@ function drawBasketPile(g: Graphics, ox: number, oy: number) {
   g.fill(0xaa2222);
 }
 
+
+// ---- Bar furniture ----
+
+function drawLongBar(g: Graphics, ox: number, oy: number) {
+  // Bar top (dark polished mahogany)
+  g.rect(ox - 20, oy - 16, 40, 4);
+  g.fill(0x3d1c02);
+  g.rect(ox - 20, oy - 16, 40, 1);
+  g.fill(0x5a2e0a);
+  // Bar body
+  g.rect(ox - 20, oy - 12, 40, 14);
+  g.fill(0x2e1502);
+  // Front face
+  g.rect(ox - 20, oy, 40, 4);
+  g.fill(0x1e0d01);
+  // Brass rail
+  g.rect(ox - 18, oy - 1, 36, 1);
+  g.fill(0xcc9933);
+  // Napkin holder
+  g.rect(ox + 8, oy - 19, 6, 3);
+  g.fill(0xeeeeee);
+}
+
+function drawBottleShelf(g: Graphics, ox: number, oy: number) {
+  // Shelf back
+  g.rect(ox - 14, oy - 46, 28, 46);
+  g.fill(0x2e1502);
+  // Shelves
+  for (let i = 0; i < 3; i++) {
+    const sy = oy - 42 + i * 14;
+    g.rect(ox - 12, sy + 10, 24, 2);
+    g.fill(0x3d1c02);
+    // Bottles
+    const colors = [0x44ff44, 0xff4444, 0xffaa00, 0x4444ff, 0xaa44ff];
+    for (let j = 0; j < 4; j++) {
+      g.rect(ox - 10 + j * 6, sy, 4, 10);
+      g.fill({ color: colors[(i * 4 + j) % colors.length], alpha: 0.7 });
+      g.rect(ox - 9 + j * 6, sy - 2, 2, 3);
+      g.fill({ color: colors[(i * 4 + j) % colors.length], alpha: 0.5 });
+    }
+  }
+}
+
+function drawTipJar(g: Graphics, ox: number, oy: number) {
+  // Jar body (glass)
+  g.rect(ox - 5, oy - 16, 10, 14);
+  g.fill({ color: 0xbbddee, alpha: 0.6 });
+  // Jar rim
+  g.rect(ox - 6, oy - 17, 12, 2);
+  g.fill(0xcccccc);
+  // Coins inside
+  g.rect(ox - 3, oy - 6, 6, 4);
+  g.fill(0xffd700);
+  g.rect(ox - 2, oy - 10, 4, 3);
+  g.fill(0xffec80);
+  // Dollar bill sticking out
+  g.rect(ox - 1, oy - 20, 3, 5);
+  g.fill(0x22aa44);
+  // Label
+  g.rect(ox - 4, oy - 12, 8, 3);
+  g.fill(0xffffee);
+}
+
+function drawChalkboard(g: Graphics, ox: number, oy: number) {
+  // Frame
+  g.rect(ox - 16, oy - 40, 32, 38);
+  g.fill(0x4a3728);
+  // Board surface
+  g.rect(ox - 14, oy - 38, 28, 34);
+  g.fill(0x2a4a2a);
+  // Chalk text lines
+  g.rect(ox - 10, oy - 34, 16, 1);
+  g.fill({ color: 0xffffff, alpha: 0.8 });
+  g.rect(ox - 10, oy - 30, 20, 1);
+  g.fill({ color: 0xffffff, alpha: 0.7 });
+  g.rect(ox - 10, oy - 26, 12, 1);
+  g.fill({ color: 0xffff88, alpha: 0.7 });
+  g.rect(ox - 10, oy - 22, 18, 1);
+  g.fill({ color: 0xffffff, alpha: 0.6 });
+  g.rect(ox - 10, oy - 18, 14, 1);
+  g.fill({ color: 0x88ffff, alpha: 0.7 });
+  // Chalk tray
+  g.rect(ox - 14, oy - 4, 28, 3);
+  g.fill(0x5a4738);
+  // Chalk pieces
+  g.rect(ox - 10, oy - 5, 3, 2);
+  g.fill(0xffffff);
+  g.rect(ox - 5, oy - 5, 3, 2);
+  g.fill(0xffff88);
+}
+
+function drawCashRegister(g: Graphics, ox: number, oy: number) {
+  // Register body
+  g.rect(ox - 10, oy - 24, 20, 20);
+  g.fill(0xcc9933);
+  // Screen
+  g.rect(ox - 7, oy - 22, 10, 6);
+  g.fill(0x003300);
+  g.rect(ox - 6, oy - 21, 8, 4);
+  g.fill(0x00aa44);
+  // Keys
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < 3; c++) {
+      g.rect(ox - 6 + c * 4, oy - 14 + r * 4, 3, 3);
+      g.fill(0xdddddd);
+    }
+  }
+  // Drawer
+  g.rect(ox - 8, oy - 6, 16, 3);
+  g.fill(0xbb8822);
+  // Front
+  g.rect(ox - 10, oy - 2, 20, 4);
+  g.fill(0xaa7722);
+}
+
+// ---- Studio furniture ----
+
+function drawEasel(g: Graphics, ox: number, oy: number, frame: number) {
+  // A-frame legs
+  g.rect(ox - 10, oy - 6, 3, 24);
+  g.fill(0x8b6914);
+  g.rect(ox + 7, oy - 6, 3, 24);
+  g.fill(0x8b6914);
+  // Back support leg
+  g.rect(ox - 1, oy + 2, 2, 16);
+  g.fill(0x7a5a10);
+  // Canvas
+  const canvasColors = [0xff6b6b, 0x4ecdc4, 0xffe66d, 0x95e1d3, 0xf38181];
+  const color = canvasColors[Math.floor(frame / 120) % canvasColors.length];
+  g.rect(ox - 8, oy - 34, 16, 28);
+  g.fill(0xfff8f0);
+  // Painting on canvas
+  g.rect(ox - 6, oy - 32, 12, 24);
+  g.fill(color);
+  // Paint splotches
+  g.circle(ox - 2, oy - 24, 3);
+  g.fill({ color: 0xffffff, alpha: 0.5 });
+  g.circle(ox + 3, oy - 18, 4);
+  g.fill({ color: darkenNum(color, 0.3), alpha: 0.6 });
+  // Ledge
+  g.rect(ox - 9, oy - 8, 18, 2);
+  g.fill(0x8b6914);
+}
+
+function drawPalette(g: Graphics, ox: number, oy: number) {
+  // Oval palette shape (simplified as rect)
+  g.rect(ox - 12, oy - 8, 24, 10);
+  g.fill(0xd2b48c);
+  g.rect(ox - 10, oy - 6, 20, 6);
+  g.fill(0xc9a066);
+  // Paint dots
+  const colors = [0xff0000, 0x0000ff, 0xffff00, 0x00ff00, 0xff8800, 0xffffff];
+  for (let i = 0; i < 6; i++) {
+    g.circle(ox - 8 + i * 3.5, oy - 3, 2);
+    g.fill(colors[i]);
+  }
+  // Thumb hole
+  g.circle(ox + 6, oy - 2, 2.5);
+  g.fill(0xb8a060);
+}
+
+function drawSculpture(g: Graphics, ox: number, oy: number) {
+  // Pedestal
+  g.rect(ox - 10, oy - 10, 20, 10);
+  g.fill(0xcccccc);
+  g.rect(ox - 12, oy - 12, 24, 3);
+  g.fill(0xdddddd);
+  g.rect(ox - 10, oy - 2, 20, 4);
+  g.fill(0xbbbbbb);
+  // Abstract sculpture (stacked geometric shapes)
+  g.rect(ox - 6, oy - 28, 12, 16);
+  g.fill(0xe0e0e0);
+  g.circle(ox, oy - 32, 6);
+  g.fill(0xd0d0d0);
+  // Highlight
+  g.rect(ox - 4, oy - 26, 2, 10);
+  g.fill({ color: 0xffffff, alpha: 0.3 });
+}
+
+function drawPaintTable(g: Graphics, ox: number, oy: number) {
+  // Table
+  g.rect(ox - 16, oy - 12, 32, 4);
+  g.fill(0xd2b48c);
+  g.rect(ox - 16, oy - 8, 32, 10);
+  g.fill(0xc9a066);
+  // Paint tubes
+  g.rect(ox - 10, oy - 16, 4, 4);
+  g.fill(0xff4444);
+  g.rect(ox - 4, oy - 16, 4, 4);
+  g.fill(0x4444ff);
+  g.rect(ox + 2, oy - 16, 4, 4);
+  g.fill(0xffff00);
+  g.rect(ox + 8, oy - 15, 4, 3);
+  g.fill(0x00aa00);
+  // Brush in water cup
+  g.rect(ox - 12, oy - 20, 4, 8);
+  g.fill({ color: 0x88bbdd, alpha: 0.6 });
+  g.rect(ox - 11, oy - 24, 1, 6);
+  g.fill(0x8b6914);
+}
+
+function drawPortfolio(g: Graphics, ox: number, oy: number) {
+  // Stack of canvases/papers
+  for (let i = 0; i < 4; i++) {
+    g.rect(ox - 10 + i, oy - 6 - i * 3, 18, 3);
+    g.fill(i % 2 === 0 ? 0xfff8f0 : 0xf0e8d0);
+  }
+  // Top canvas with art
+  g.rect(ox - 8, oy - 18, 14, 10);
+  g.fill(0xfff8f0);
+  g.rect(ox - 6, oy - 16, 10, 6);
+  g.fill(0x4ecdc4);
+  // Label
+  g.rect(ox - 4, oy - 4, 8, 2);
+  g.fill(0xaaaaaa);
+}
+
+// ---- Bank furniture ----
+
+function drawTeller(g: Graphics, ox: number, oy: number) {
+  // Counter base
+  g.rect(ox - 18, oy - 14, 36, 14);
+  g.fill(0x8b6914);
+  g.rect(ox - 18, oy - 16, 36, 4);
+  g.fill(0xa0804d);
+  g.rect(ox - 18, oy - 2, 36, 4);
+  g.fill(0x6b4f0a);
+  // Glass partition
+  g.rect(ox - 14, oy - 40, 28, 24);
+  g.fill({ color: 0xbbddee, alpha: 0.4 });
+  // Glass frame
+  g.rect(ox - 14, oy - 40, 28, 2);
+  g.fill(0x888888);
+  g.rect(ox - 14, oy - 18, 28, 2);
+  g.fill(0x888888);
+  g.rect(ox - 14, oy - 40, 2, 24);
+  g.fill(0x888888);
+  g.rect(ox + 12, oy - 40, 2, 24);
+  g.fill(0x888888);
+  // Speaking hole
+  g.circle(ox, oy - 28, 4);
+  g.fill({ color: 0x888888, alpha: 0.5 });
+  // Number display
+  g.rect(ox - 6, oy - 44, 12, 4);
+  g.fill(0x111111);
+  g.rect(ox - 4, oy - 43, 8, 2);
+  g.fill(0x00ff00);
+}
+
+function drawVault(g: Graphics, ox: number, oy: number, frame: number) {
+  // Vault door frame
+  g.rect(ox - 18, oy - 44, 36, 44);
+  g.fill(0x555555);
+  // Door
+  g.rect(ox - 14, oy - 40, 28, 36);
+  g.fill(0x888888);
+  // Circular hatch detail
+  g.circle(ox, oy - 22, 12);
+  g.fill(0x999999);
+  g.circle(ox, oy - 22, 10);
+  g.fill(0x777777);
+  // Spokes
+  for (let i = 0; i < 4; i++) {
+    const angle = (i / 4) * Math.PI + frame * 0.005;
+    const x1 = ox + Math.cos(angle) * 8;
+    const y1 = oy - 22 + Math.sin(angle) * 8;
+    const x2 = ox - Math.cos(angle) * 8;
+    const y2 = oy - 22 - Math.sin(angle) * 8;
+    g.moveTo(x1, y1);
+    g.lineTo(x2, y2);
+    g.stroke({ width: 2, color: 0xaaaaaa });
+  }
+  // Center bolt
+  g.circle(ox, oy - 22, 3);
+  g.fill(0xcccccc);
+  // Handle
+  g.rect(ox + 10, oy - 26, 4, 8);
+  g.fill(0xbbbbbb);
+  // Lock indicator
+  g.circle(ox - 10, oy - 34, 2);
+  g.fill(frame % 120 < 60 ? 0xff0000 : 0x00ff00);
+}
+
+function drawSecurityDesk(g: Graphics, ox: number, oy: number) {
+  // Desk
+  g.rect(ox - 16, oy - 14, 32, 14);
+  g.fill(0x333333);
+  g.rect(ox - 16, oy - 16, 32, 4);
+  g.fill(0x444444);
+  // Monitors
+  g.rect(ox - 10, oy - 28, 8, 10);
+  g.fill(0x111111);
+  g.rect(ox - 8, oy - 26, 4, 6);
+  g.fill(0x334455);
+  g.rect(ox + 2, oy - 28, 8, 10);
+  g.fill(0x111111);
+  g.rect(ox + 4, oy - 26, 4, 6);
+  g.fill(0x334455);
+  // Keyboard
+  g.rect(ox - 6, oy - 16, 12, 2);
+  g.fill(0x222222);
+}
+
+function drawCoinStack(g: Graphics, ox: number, oy: number) {
+  // Stacks of coins
+  for (let s = 0; s < 3; s++) {
+    const sx = ox - 8 + s * 7;
+    const height = 4 + s * 2;
+    for (let c = 0; c < height; c++) {
+      g.circle(sx, oy - 2 - c * 2.5, 4);
+      g.fill(c % 2 === 0 ? 0xffd700 : 0xffec80);
+    }
+    g.circle(sx, oy - 2 - height * 2.5, 4);
+    g.fill(0xffd700);
+    // Coin edge highlight
+    g.circle(sx - 1, oy - 2 - height * 2.5, 1);
+    g.fill({ color: 0xffffff, alpha: 0.4 });
+  }
+}
+
+function drawRopeBarrier(g: Graphics, ox: number, oy: number) {
+  // Posts
+  g.rect(ox - 12, oy - 24, 3, 24);
+  g.fill(0xccaa33);
+  g.rect(ox + 9, oy - 24, 3, 24);
+  g.fill(0xccaa33);
+  // Post tops
+  g.circle(ox - 10.5, oy - 25, 3);
+  g.fill(0xddbb44);
+  g.circle(ox + 10.5, oy - 25, 3);
+  g.fill(0xddbb44);
+  // Rope (velvet)
+  g.rect(ox - 10, oy - 16, 20, 2);
+  g.fill(0xcc2222);
+  // Rope sag
+  g.rect(ox - 6, oy - 14, 12, 1);
+  g.fill(0xcc2222);
+}
+
+function drawSafeBoxes(g: Graphics, ox: number, oy: number) {
+  // Wall of boxes
+  g.rect(ox - 14, oy - 44, 28, 44);
+  g.fill(0x666666);
+  // Grid of small boxes
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 3; c++) {
+      g.rect(ox - 12 + c * 8, oy - 42 + r * 8, 7, 7);
+      g.fill(0x888888);
+      // Keyhole
+      g.circle(ox - 8 + c * 8, oy - 38 + r * 8, 1);
+      g.fill(0x444444);
+    }
+  }
+  // Front face
+  g.rect(ox - 14, oy - 2, 28, 4);
+  g.fill(0x555555);
+}
+
+// ---- Gym furniture ----
+
+function drawDumbbellRack(g: Graphics, ox: number, oy: number) {
+  // Rack frame
+  g.rect(ox - 16, oy - 30, 32, 30);
+  g.fill(0x333333);
+  g.rect(ox - 16, oy - 2, 32, 4);
+  g.fill(0x222222);
+  // Shelves
+  for (let i = 0; i < 3; i++) {
+    const sy = oy - 28 + i * 10;
+    g.rect(ox - 14, sy + 6, 28, 2);
+    g.fill(0x444444);
+    // Dumbbells
+    for (let d = 0; d < 3; d++) {
+      const dx = ox - 10 + d * 9;
+      // Bar
+      g.rect(dx - 1, sy + 2, 8, 2);
+      g.fill(0x888888);
+      // Weights
+      g.rect(dx - 2, sy, 3, 6);
+      g.fill(i === 0 ? 0x222222 : i === 1 ? 0x444488 : 0x884444);
+      g.rect(dx + 5, sy, 3, 6);
+      g.fill(i === 0 ? 0x222222 : i === 1 ? 0x444488 : 0x884444);
+    }
+  }
+}
+
+function drawPullupBar(g: Graphics, ox: number, oy: number) {
+  // Vertical posts
+  g.rect(ox - 14, oy - 44, 3, 44);
+  g.fill(0x555555);
+  g.rect(ox + 11, oy - 44, 3, 44);
+  g.fill(0x555555);
+  // Horizontal bar
+  g.rect(ox - 14, oy - 46, 28, 3);
+  g.fill(0x888888);
+  // Grip wraps
+  g.rect(ox - 10, oy - 46, 4, 3);
+  g.fill(0x333333);
+  g.rect(ox + 6, oy - 46, 4, 3);
+  g.fill(0x333333);
+  // Base
+  g.rect(ox - 16, oy - 2, 32, 4);
+  g.fill(0x444444);
+}
+
+function drawBenchPress(g: Graphics, ox: number, oy: number) {
+  // Bench
+  g.rect(ox - 14, oy - 8, 28, 4);
+  g.fill(0x333333);
+  g.rect(ox - 12, oy - 10, 24, 3);
+  g.fill(0x222222);
+  // Bench legs
+  g.rect(ox - 12, oy - 4, 3, 6);
+  g.fill(0x444444);
+  g.rect(ox + 9, oy - 4, 3, 6);
+  g.fill(0x444444);
+  // Barbell rack posts
+  g.rect(ox - 16, oy - 30, 3, 22);
+  g.fill(0x555555);
+  g.rect(ox + 13, oy - 30, 3, 22);
+  g.fill(0x555555);
+  // Barbell
+  g.rect(ox - 14, oy - 28, 28, 2);
+  g.fill(0x888888);
+  // Weight plates
+  g.rect(ox - 18, oy - 32, 4, 10);
+  g.fill(0x222222);
+  g.rect(ox + 14, oy - 32, 4, 10);
+  g.fill(0x222222);
+  // Pad
+  g.rect(ox - 8, oy - 11, 16, 3);
+  g.fill(0x882222);
+}
+
+function drawMirrorWall(g: Graphics, ox: number, oy: number) {
+  // Wall section
+  g.rect(ox - 16, oy - 44, 32, 44);
+  g.fill(0x505050);
+  // Mirror (reflective)
+  g.rect(ox - 14, oy - 42, 28, 38);
+  g.fill(0xaabbcc);
+  // Reflection highlight
+  g.rect(ox - 12, oy - 40, 4, 34);
+  g.fill({ color: 0xffffff, alpha: 0.2 });
+  g.rect(ox + 4, oy - 40, 2, 34);
+  g.fill({ color: 0xffffff, alpha: 0.1 });
+  // Frame
+  g.rect(ox - 14, oy - 42, 28, 1);
+  g.fill(0x888888);
+  g.rect(ox - 14, oy - 5, 28, 1);
+  g.fill(0x888888);
+}
+
+function drawWaterCooler(g: Graphics, ox: number, oy: number) {
+  // Base
+  g.rect(ox - 6, oy - 8, 12, 8);
+  g.fill(0x888888);
+  // Bottle (blue water)
+  g.rect(ox - 5, oy - 30, 10, 22);
+  g.fill({ color: 0x4488ff, alpha: 0.5 });
+  // Bottle top
+  g.rect(ox - 3, oy - 34, 6, 5);
+  g.fill({ color: 0x4488ff, alpha: 0.4 });
+  // Spout
+  g.rect(ox + 4, oy - 10, 4, 3);
+  g.fill(0xcccccc);
+  // Cup holder
+  g.rect(ox + 6, oy - 8, 4, 4);
+  g.fill(0xdddddd);
+  // Front face
+  g.rect(ox - 6, oy - 2, 12, 4);
+  g.fill(0x777777);
+}
+
+function drawPoster(g: Graphics, ox: number, oy: number) {
+  // Poster background
+  g.rect(ox - 12, oy - 36, 24, 32);
+  g.fill(0x222222);
+  // Poster content
+  g.rect(ox - 10, oy - 34, 20, 28);
+  g.fill(0xff4444);
+  // Text lines
+  g.rect(ox - 6, oy - 30, 12, 2);
+  g.fill(0xffffff);
+  g.rect(ox - 8, oy - 26, 16, 1);
+  g.fill(0xffffff);
+  g.rect(ox - 4, oy - 22, 8, 1);
+  g.fill(0xffff00);
+  // Dumbbell icon
+  g.rect(ox - 6, oy - 18, 12, 2);
+  g.fill(0xffffff);
+  g.rect(ox - 8, oy - 20, 3, 6);
+  g.fill(0xffffff);
+  g.rect(ox + 5, oy - 20, 3, 6);
+  g.fill(0xffffff);
+  // Thumbtack
+  g.circle(ox, oy - 36, 2);
+  g.fill(0xff4444);
+}
 
 // ---- Room-level drawing functions ----
 

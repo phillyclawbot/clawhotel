@@ -29,24 +29,61 @@ export async function GET() {
   const bots = await sql`
     SELECT b.id, b.name, b.emoji, b.accent_color, b.x, b.y, b.target_x, b.target_y,
            b.speech, b.speech_at, b.status, b.is_online, b.model, b.about, b.mood,
-           b.checked_in_at, b.streak, b.emote, b.emote_at, br.room_id
+           b.checked_in_at, b.streak, b.emote, b.emote_at, b.prestige_count, br.room_id
     FROM cl_bots b
     LEFT JOIN cl_bot_rooms br ON br.bot_id = b.id
     WHERE b.is_online = true
     ORDER BY b.created_at
   `;
 
-  // Get items for online bots (for chef hat rendering etc.)
   const botIds = bots.map((b) => b.id);
   const items = botIds.length > 0
     ? await sql`SELECT bot_id, item_id, item_emoji FROM cl_items WHERE bot_id = ANY(${botIds})`
     : [];
 
-  // Attach items to bots
-  const botsWithExtras = bots.map((b) => ({
-    ...b,
-    items: items.filter((i) => i.bot_id === b.id).map((i) => ({ item_id: i.item_id, item_emoji: i.item_emoji })),
-  }));
+  // Get outfits for online bots
+  const outfits = botIds.length > 0
+    ? await sql`SELECT * FROM cl_outfit WHERE bot_id = ANY(${botIds})`
+    : [];
+
+  const allSlotIds = outfits.flatMap((o) => [o.hat, o.shirt, o.pants, o.accessory, o.shoes].filter(Boolean));
+  const clothingItems = allSlotIds.length > 0
+    ? await sql`SELECT id, name, slot, emoji, color FROM cl_clothing_catalog WHERE id = ANY(${allSlotIds})`
+    : [];
+  const clothingMap: Record<string, { id: string; name: string; slot: string; emoji: string; color: number }> = {};
+  for (const c of clothingItems) {
+    clothingMap[c.id] = { id: c.id, name: c.name, slot: c.slot, emoji: c.emoji, color: Number(c.color) };
+  }
+
+  // Get bot stats for level calculation
+  const allStats = botIds.length > 0
+    ? await sql`SELECT bot_id, cooking_xp, dj_xp, bartending_xp, art_xp, strength_xp FROM cl_bot_stats WHERE bot_id = ANY(${botIds})`
+    : [];
+  const statsMap: Record<string, number> = {};
+  for (const s of allStats) {
+    statsMap[s.bot_id] = Number(s.cooking_xp || 0) + Number(s.dj_xp || 0) + Number(s.bartending_xp || 0) + Number(s.art_xp || 0) + Number(s.strength_xp || 0);
+  }
+
+  const botsWithExtras = bots.map((b) => {
+    const outfitRow = outfits.find((o) => o.bot_id === b.id);
+    const outfit: Record<string, unknown> = {};
+    if (outfitRow) {
+      for (const slot of ["hat", "shirt", "pants", "accessory", "shoes"] as const) {
+        if (outfitRow[slot] && clothingMap[outfitRow[slot]]) {
+          outfit[slot] = clothingMap[outfitRow[slot]];
+        }
+      }
+    }
+    const totalXp = statsMap[b.id] || 0;
+    const level = Math.floor(Math.sqrt(totalXp / 10)) + 1;
+    return {
+      ...b,
+      items: items.filter((i) => i.bot_id === b.id).map((i) => ({ item_id: i.item_id, item_emoji: i.item_emoji })),
+      outfit: Object.keys(outfit).length > 0 ? outfit : undefined,
+      level,
+      prestige_count: Number(b.prestige_count || 0),
+    };
+  });
 
   const messages = await sql`
     SELECT m.bot_id, b.name AS bot_name, b.emoji, b.accent_color, m.text, m.created_at

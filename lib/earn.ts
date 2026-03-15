@@ -21,24 +21,10 @@ export async function awardPendingEarnings(botId: string) {
 
   if (amount <= 0 && hours < 0.001) return { type: earn_type, amount: 0 };
 
-  // Determine which stat columns to update
-  let xpCol: string;
-  let hoursCol: string;
-  if (earn_type === "cooking_xp") {
-    xpCol = "cooking_xp";
-    hoursCol = "total_kitchen_hours";
-  } else if (earn_type === "dj_xp") {
-    xpCol = "dj_xp";
-    hoursCol = "total_dancefloor_hours";
-  } else {
-    xpCol = "coins";
-    hoursCol = "total_store_hours";
-  }
-
   // Ensure stats row exists
   await sql`INSERT INTO cl_bot_stats (bot_id) VALUES (${botId}) ON CONFLICT DO NOTHING`;
 
-  // Update stats using dynamic column via raw approach
+  // Update stats based on earn_type
   if (earn_type === "cooking_xp") {
     await sql`
       UPDATE cl_bot_stats
@@ -55,14 +41,49 @@ export async function awardPendingEarnings(botId: string) {
           updated_at = NOW()
       WHERE bot_id = ${botId}
     `;
-  } else {
+  } else if (earn_type === "bartending_xp") {
     await sql`
       UPDATE cl_bot_stats
-      SET coins = coins + ${amount},
-          total_store_hours = total_store_hours + ${hours},
+      SET bartending_xp = bartending_xp + ${amount},
+          total_bar_hours = total_bar_hours + ${hours},
           updated_at = NOW()
       WHERE bot_id = ${botId}
     `;
+  } else if (earn_type === "art_xp") {
+    await sql`
+      UPDATE cl_bot_stats
+      SET art_xp = art_xp + ${amount},
+          total_studio_hours = total_studio_hours + ${hours},
+          updated_at = NOW()
+      WHERE bot_id = ${botId}
+    `;
+  } else if (earn_type === "strength_xp") {
+    await sql`
+      UPDATE cl_bot_stats
+      SET strength_xp = strength_xp + ${amount},
+          total_gym_hours = total_gym_hours + ${hours},
+          updated_at = NOW()
+      WHERE bot_id = ${botId}
+    `;
+  } else {
+    // coins (store or bank)
+    if (room_id === "bank") {
+      await sql`
+        UPDATE cl_bot_stats
+        SET coins = coins + ${amount},
+            total_bank_hours = total_bank_hours + ${hours},
+            updated_at = NOW()
+        WHERE bot_id = ${botId}
+      `;
+    } else {
+      await sql`
+        UPDATE cl_bot_stats
+        SET coins = coins + ${amount},
+            total_store_hours = total_store_hours + ${hours},
+            updated_at = NOW()
+        WHERE bot_id = ${botId}
+      `;
+    }
   }
 
   // Update last_earned_at
@@ -121,6 +142,70 @@ async function checkMilestones(botId: string) {
     await sql`
       INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
       VALUES (${botId}, 'golden_register', 'Golden Register', '💰')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Bar milestones
+  if (Number(s.total_bar_hours || 0) >= 5) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'cocktail_shaker', 'Cocktail Shaker', '🍹')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_bar_hours || 0) >= 15) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'bartender_hat', 'Bartender''s Hat', '🎩')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Studio milestones
+  if (Number(s.total_studio_hours || 0) >= 3) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'paint_brush', 'Paint Brush', '🖌️')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_studio_hours || 0) >= 10) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'masterpiece', 'Masterpiece', '🖼️')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Bank milestones
+  if (Number(s.total_bank_hours || 0) >= 10) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'briefcase', 'Briefcase', '💼')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_bank_hours || 0) >= 25) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'banker_badge', 'Banker''s Badge', '🏦')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Gym milestones
+  if (Number(s.total_gym_hours || 0) >= 5) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'dumbbell', 'Dumbbell', '💪')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_gym_hours || 0) >= 20) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'boxing_gloves', 'Boxing Gloves', '🥊')
       ON CONFLICT (bot_id, item_id) DO NOTHING
     `;
   }

@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/heartbeat",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/newspaper",
+      "schedule": "55 23 * * *"
     }
   ]
 }

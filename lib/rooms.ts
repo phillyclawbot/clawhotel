@@ -5,7 +5,11 @@ export interface FurnitureItem {
   type: "chair" | "table" | "arcade" | "dancefloor" | "plant" | "counter" | "jukebox" | "bulletin"
     | "stove" | "prep_counter" | "fridge" | "sink" | "pot_rack"
     | "dj_booth" | "speaker" | "disco_ball" | "bar_counter" | "bar_stool"
-    | "shelf" | "checkout" | "display_case" | "entrance_mat" | "basket_pile";
+    | "shelf" | "checkout" | "display_case" | "entrance_mat" | "basket_pile"
+    | "long_bar" | "bottle_shelf" | "tip_jar" | "chalkboard" | "cash_register"
+    | "easel" | "palette" | "sculpture" | "paint_table" | "portfolio"
+    | "teller" | "vault" | "security_desk" | "coin_stack" | "rope_barrier" | "safe_boxes"
+    | "dumbbell_rack" | "pullup_bar" | "bench_press" | "mirror_wall" | "water_cooler" | "poster";
   tileX: number;
   tileY: number;
   label: string;
@@ -151,6 +155,118 @@ export const ROOMS: Record<string, RoomDef> = {
     ],
     workPos: { x: 9, y: 2 }, // behind the checkout counter
   },
+
+  bar: {
+    id: "bar",
+    name: "The Bar",
+    emoji: "🍺",
+    grid: FULL_GRID,
+    floorColorA: 0x3d1c02,
+    floorColorB: 0x2e1502,
+    wallColorLeft: 0x8b6914,
+    wallColorRight: 0x7a5a10,
+    wallColorTop: 0x9b7924,
+    floorStyle: "checker",
+    furniture: [
+      { id: "longbar1", type: "long_bar", tileX: 3, tileY: 1, label: "Bar Counter", action: "chill" },
+      { id: "longbar2", type: "long_bar", tileX: 5, tileY: 1, label: "Bar Counter", action: "chill" },
+      { id: "longbar3", type: "long_bar", tileX: 7, tileY: 1, label: "Bar Counter", action: "chill" },
+      { id: "bstool1", type: "bar_stool", tileX: 3, tileY: 2, label: "Bar Stool", action: "sit" },
+      { id: "bstool2", type: "bar_stool", tileX: 5, tileY: 2, label: "Bar Stool", action: "sit" },
+      { id: "bstool3", type: "bar_stool", tileX: 7, tileY: 2, label: "Bar Stool", action: "sit" },
+      { id: "bottles1", type: "bottle_shelf", tileX: 2, tileY: 0, label: "Bottles", action: "read" },
+      { id: "bottles2", type: "bottle_shelf", tileX: 6, tileY: 0, label: "Bottles", action: "read" },
+      { id: "bottles3", type: "bottle_shelf", tileX: 9, tileY: 0, label: "Bottles", action: "read" },
+      { id: "tipjar1", type: "tip_jar", tileX: 4, tileY: 1, label: "Tip Jar", action: "chill" },
+      { id: "chalk1", type: "chalkboard", tileX: 0, tileY: 3, label: "Chalkboard Menu", action: "read" },
+      { id: "cashreg1", type: "cash_register", tileX: 9, tileY: 1, label: "Cash Register", action: "checkin" },
+      { id: "btable1", type: "table", tileX: 4, tileY: 6, label: "Table", action: "chill" },
+      { id: "bchair1", type: "chair", tileX: 3, tileY: 6, label: "Chair", action: "sit" },
+      { id: "bchair2", type: "chair", tileX: 5, tileY: 6, label: "Chair", action: "sit" },
+    ],
+    workPos: { x: 5, y: 0.5 },
+  },
+
+  studio: {
+    id: "studio",
+    name: "Art Studio",
+    emoji: "🎨",
+    grid: FULL_GRID,
+    floorColorA: 0xd4b896,
+    floorColorB: 0xc4a882,
+    wallColorLeft: 0xfff8f0,
+    wallColorRight: 0xf5ede0,
+    wallColorTop: 0xffffff,
+    floorStyle: "clean",
+    furniture: [
+      { id: "easel1", type: "easel", tileX: 3, tileY: 3, label: "Easel", action: "play" },
+      { id: "easel2", type: "easel", tileX: 5, tileY: 3, label: "Easel", action: "play" },
+      { id: "easel3", type: "easel", tileX: 7, tileY: 3, label: "Easel", action: "play" },
+      { id: "palette1", type: "palette", tileX: 4, tileY: 5, label: "Paint Palette", action: "chill" },
+      { id: "sculpt1", type: "sculpture", tileX: 9, tileY: 2, label: "Sculpture", action: "read" },
+      { id: "painttbl1", type: "paint_table", tileX: 2, tileY: 5, label: "Paint Supplies", action: "chill" },
+      { id: "portfolio1", type: "portfolio", tileX: 10, tileY: 5, label: "Portfolio Stack", action: "read" },
+      { id: "splant1", type: "plant", tileX: 0, tileY: 1, label: "Studio Plant", action: "water" },
+      { id: "stable1", type: "table", tileX: 6, tileY: 7, label: "Break Table", action: "chill" },
+      { id: "schair1", type: "chair", tileX: 5, tileY: 7, label: "Chair", action: "sit" },
+      { id: "schair2", type: "chair", tileX: 7, tileY: 7, label: "Chair", action: "sit" },
+    ],
+    workPos: { x: 5, y: 4 },
+  },
+
+  bank: {
+    id: "bank",
+    name: "The Bank",
+    emoji: "🏦",
+    grid: FULL_GRID,
+    floorColorA: 0xe8e8e8,
+    floorColorB: 0xd8d8d8,
+    wallColorLeft: 0x1e3a5f,
+    wallColorRight: 0x162d4a,
+    wallColorTop: 0x2a4a6f,
+    floorStyle: "clean",
+    furniture: [
+      { id: "teller1", type: "teller", tileX: 3, tileY: 1, label: "Teller Window", action: "checkin" },
+      { id: "teller2", type: "teller", tileX: 5, tileY: 1, label: "Teller Window", action: "checkin" },
+      { id: "teller3", type: "teller", tileX: 7, tileY: 1, label: "Teller Window", action: "checkin" },
+      { id: "vault1", type: "vault", tileX: 10, tileY: 3, label: "Vault Door", action: "read" },
+      { id: "secdesk1", type: "security_desk", tileX: 1, tileY: 5, label: "Security Desk", action: "read" },
+      { id: "coins1", type: "coin_stack", tileX: 9, tileY: 1, label: "Coin Stacks", action: "chill" },
+      { id: "rope1", type: "rope_barrier", tileX: 4, tileY: 4, label: "Queue Barrier", action: "chill" },
+      { id: "rope2", type: "rope_barrier", tileX: 6, tileY: 4, label: "Queue Barrier", action: "chill" },
+      { id: "safebox1", type: "safe_boxes", tileX: 0, tileY: 2, label: "Safe Deposit Boxes", action: "read" },
+      { id: "bktable1", type: "table", tileX: 5, tileY: 7, label: "Waiting Table", action: "chill" },
+      { id: "bkchair1", type: "chair", tileX: 4, tileY: 7, label: "Chair", action: "sit" },
+      { id: "bkchair2", type: "chair", tileX: 6, tileY: 7, label: "Chair", action: "sit" },
+    ],
+    workPos: { x: 5, y: 0.5 },
+  },
+
+  gym: {
+    id: "gym",
+    name: "The Gym",
+    emoji: "🏋️",
+    grid: FULL_GRID,
+    floorColorA: 0x1a1a1a,
+    floorColorB: 0x111111,
+    wallColorLeft: 0x404040,
+    wallColorRight: 0x303030,
+    wallColorTop: 0x505050,
+    floorStyle: "clean",
+    furniture: [
+      { id: "dumbrack1", type: "dumbbell_rack", tileX: 2, tileY: 1, label: "Dumbbell Rack", action: "play" },
+      { id: "pullup1", type: "pullup_bar", tileX: 5, tileY: 1, label: "Pull-Up Bar", action: "play" },
+      { id: "bench1", type: "bench_press", tileX: 5, tileY: 4, label: "Bench Press", action: "play" },
+      { id: "bench2", type: "bench_press", tileX: 8, tileY: 4, label: "Bench Press", action: "play" },
+      { id: "mirror1", type: "mirror_wall", tileX: 9, tileY: 1, label: "Mirror Wall", action: "read" },
+      { id: "cooler1", type: "water_cooler", tileX: 10, tileY: 6, label: "Water Cooler", action: "water" },
+      { id: "poster1", type: "poster", tileX: 0, tileY: 3, label: "Motivational Poster", action: "read" },
+      { id: "gtable1", type: "table", tileX: 3, tileY: 7, label: "Rest Area", action: "chill" },
+      { id: "gchair1", type: "chair", tileX: 2, tileY: 7, label: "Bench", action: "sit" },
+      { id: "gchair2", type: "chair", tileX: 4, tileY: 7, label: "Bench", action: "sit" },
+    ],
+    workPos: { x: 5, y: 3 },
+  },
 };
 
 // Furniture emoji labels for tooltips
@@ -178,6 +294,32 @@ export const furnitureEmoji: Record<string, string> = {
   display_case: "🧃",
   entrance_mat: "🚪",
   basket_pile: "🧺",
+  // Bar
+  long_bar: "🍸",
+  bottle_shelf: "🍾",
+  tip_jar: "🫙",
+  chalkboard: "📝",
+  cash_register: "💵",
+  // Studio
+  easel: "🎨",
+  palette: "🎨",
+  sculpture: "🗿",
+  paint_table: "🖌️",
+  portfolio: "📁",
+  // Bank
+  teller: "🏦",
+  vault: "🔒",
+  security_desk: "🛡️",
+  coin_stack: "🪙",
+  rope_barrier: "🚧",
+  safe_boxes: "🗄️",
+  // Gym
+  dumbbell_rack: "🏋️",
+  pullup_bar: "💪",
+  bench_press: "🏋️",
+  mirror_wall: "🪞",
+  water_cooler: "💧",
+  poster: "📃",
 };
 
 // Room zone definitions (kept for backward compat with API)

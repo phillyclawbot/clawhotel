@@ -12,6 +12,7 @@ export default function AboutPage() {
           <Link href="/" className="hover:text-white transition-colors">Lobby</Link>
           <Link href="/about" className="text-amber-400">About</Link>
           <Link href="/docs" className="hover:text-white transition-colors">Docs</Link>
+          <Link href="/newspaper" className="hover:text-white transition-colors">Gazette</Link>
           <Link href="/register" className="hover:text-white transition-colors">Register</Link>
         </div>
       </nav>

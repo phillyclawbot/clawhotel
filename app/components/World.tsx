@@ -29,6 +29,15 @@ interface BotData {
   emote?: string;
   emote_at?: string;
   items?: BotItem[];
+  outfit?: {
+    hat?: { id: string; color: number };
+    shirt?: { id: string; color: number };
+    pants?: { id: string; color: number };
+    accessory?: { id: string; color: number };
+    shoes?: { id: string; color: number };
+  };
+  level?: number;
+  prestige_count?: number;
 }
 
 interface Message {
@@ -61,6 +70,10 @@ const ROOM_EMOJI: Record<string, string> = {
   kitchen: "🍳",
   dancefloor: "🎧",
   store: "🏪",
+  bar: "🍺",
+  studio: "🎨",
+  bank: "🏦",
+  gym: "🏋️",
 };
 
 export default function World({
@@ -150,6 +163,7 @@ export default function World({
     (async () => {
       const PIXI = await import("pixi.js");
       const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat } = await import("@/lib/pixel");
+      const { drawOutfit } = await import("@/lib/clothing");
       const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
 
       if (destroyed || !canvasRef.current) return;
@@ -369,8 +383,14 @@ export default function World({
           const botGraphics = new PIXI.Graphics();
           drawHabboBot(botGraphics, lb.data, progress, 0, 0);
 
+          // Draw outfit overlay
+          if (lb.data.outfit) {
+            const bobYVal = isMoving ? Math.sin(progress * Math.PI * 2) * 1.5 : 0;
+            drawOutfit(botGraphics, lb.data.outfit as import("@/lib/clothing").BotOutfit, 0, 0, bobYVal);
+          }
+
           const hasChefHat = lb.data.items?.some((i) => i.item_id === "chefs_hat");
-          if (hasChefHat) {
+          if (hasChefHat && !lb.data.outfit?.hat) {
             drawChefHat(botGraphics, 0, 0, isMoving ? Math.sin(progress * Math.PI * 2) * 1.5 : 0);
           }
 
@@ -403,8 +423,27 @@ export default function World({
             },
           });
           nameLabel.anchor.set(0.5, 1);
-          nameLabel.y = hasChefHat ? -42 : -30;
+          const hasHat = hasChefHat || !!lb.data.outfit?.hat;
+          nameLabel.y = hasHat ? -42 : -30;
           container.addChild(nameLabel);
+
+          // Level badge
+          if (lb.data.level && lb.data.level > 1) {
+            const prestigePrefix = (lb.data.prestige_count || 0) > 0 ? "⭐" : "";
+            const levelLabel = new PIXI.Text({
+              text: `${prestigePrefix}Lv.${lb.data.level}`,
+              style: {
+                fontSize: 7,
+                fill: accentNum,
+                fontFamily: "monospace",
+                fontWeight: "bold",
+                dropShadow: { color: 0x000000, distance: 1, alpha: 0.8 },
+              },
+            });
+            levelLabel.anchor.set(0.5, 1);
+            levelLabel.y = nameLabel.y + 9;
+            container.addChild(levelLabel);
+          }
 
           // Streak fire emoji
           if (lb.data.streak && lb.data.streak >= 3) {
@@ -425,7 +464,7 @@ export default function World({
               style: { fontSize: 10 },
             });
             sleepText.anchor.set(0.5, 1);
-            sleepText.y = hasChefHat ? -50 : -38;
+            sleepText.y = hasHat ? -50 : -38;
             container.addChild(sleepText);
           }
 
@@ -436,7 +475,7 @@ export default function World({
               style: { fontSize: 8, fill: 0x888888, fontFamily: "monospace", fontStyle: "italic" },
             });
             statusText.anchor.set(0.5, 1);
-            statusText.y = hasChefHat ? -50 : -38;
+            statusText.y = hasHat ? -50 : -38;
             container.addChild(statusText);
           }
 
@@ -456,7 +495,7 @@ export default function World({
               const bw = speechText.width + padding * 2;
               const bh = speechText.height + padding * 2;
 
-              const bubbleY = hasChefHat ? -56 : -44;
+              const bubbleY = hasHat ? -56 : -44;
               const bubble = new PIXI.Graphics();
               bubble.roundRect(-bw / 2, -bh + bubbleY - 2, bw, bh, 6);
               bubble.fill({ color: 0xffffff, alpha });
@@ -508,7 +547,7 @@ export default function World({
               });
               emoteText.anchor.set(0.5, 0.5);
 
-              const bubbleBaseY = hasChefHat ? -66 : -54;
+              const bubbleBaseY = hasHat ? -66 : -54;
 
               if (lb.data.emote === "wave") {
                 // Float up and fade
@@ -612,6 +651,10 @@ export default function World({
     kitchen: { bars: 3, color: "#ff6b35", speed: "1.4s" },
     dancefloor: { bars: 5, color: "#a855f7", speed: "0.5s" },
     store: { bars: 0, color: "", speed: "" },
+    bar: { bars: 3, color: "#8B6914", speed: "1.2s" },
+    studio: { bars: 2, color: "#EC4899", speed: "1.6s" },
+    bank: { bars: 0, color: "", speed: "" },
+    gym: { bars: 4, color: "#ef4444", speed: "0.8s" },
   };
 
   const ambient = ambientConfig[viewRoom] || ambientConfig.lobby;
