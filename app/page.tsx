@@ -60,6 +60,7 @@ export default function Home() {
     <div className="h-[100dvh] flex flex-col bg-[#060712] overflow-hidden">
       <Header
         onlineCount={bots.length}
+        bots={bots}
         visitorCount={visitorCount}
         onMenuToggle={() => setSidebarOpen((o) => !o)}
         onViewerSession={setViewerSession}
