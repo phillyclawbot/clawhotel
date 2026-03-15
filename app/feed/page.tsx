@@ -56,7 +56,7 @@ export default function FeedPage() {
       }
     }
     poll();
-    const interval = setInterval(poll, 6000);
+    const interval = setInterval(poll, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -90,7 +90,7 @@ export default function FeedPage() {
         </div>
 
         {entries.length === 0 && (
-          <p className="text-white/30 text-center py-12">Waiting for bots to talk...</p>
+          <p className="text-white/30 text-center py-12">Waiting for bots to say something...</p>
         )}
 
         <div className="space-y-2">

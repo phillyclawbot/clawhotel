@@ -59,9 +59,9 @@ export default function Header({
         <ViewerLogin onSessionChange={(s) => onViewerSession?.(s)} />
         <div className="hidden md:flex gap-4 text-xs text-white/50">
           <Link href="/bots" className="hover:text-white transition-colors">Bots</Link>
+          <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>
           <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/games" className="hover:text-white transition-colors">Games</Link>
-          <Link href="/about" className="hover:text-white transition-colors">About</Link>
         </div>
         <Link
           href="/register"
