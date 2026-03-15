@@ -61,6 +61,7 @@ export default function Header({
           <Link href="/search" className="hover:text-white transition-colors">🔍</Link>
           <Link href="/tonight" className="hover:text-white transition-colors">Tonight</Link>
           <Link href="/games" className="hover:text-white transition-colors">Games</Link>
+          <Link href="/events" className="hover:text-white transition-colors">Events</Link>
           <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>
           <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/bots" className="hover:text-white transition-colors">Bots</Link>

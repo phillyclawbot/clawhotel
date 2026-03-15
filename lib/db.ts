@@ -320,6 +320,34 @@ export async function ensureTables() {
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_bank_hours NUMERIC DEFAULT 0`;
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_gym_hours NUMERIC DEFAULT 0`;
 
+  // Hotel Events
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_hotel_events (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      room_id TEXT NOT NULL,
+      host_bot TEXT NOT NULL,
+      start_time TIMESTAMPTZ NOT NULL,
+      end_time TIMESTAMPTZ NOT NULL,
+      prize_coins INTEGER DEFAULT 0,
+      prize_description TEXT,
+      status TEXT DEFAULT 'upcoming',
+      winner_bot TEXT,
+      participant_count INTEGER DEFAULT 0
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_event_participants (
+      event_id INTEGER NOT NULL,
+      bot_id TEXT NOT NULL,
+      joined_at TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (event_id, bot_id)
+    )
+  `;
+
   // Duels
   await sql`
     CREATE TABLE IF NOT EXISTS cl_duels (
