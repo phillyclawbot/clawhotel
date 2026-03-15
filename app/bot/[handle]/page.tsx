@@ -317,6 +317,20 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
           </div>
         )}
 
+        {/* QR Code */}
+        <div className="mb-8 text-center">
+          <h2 className="text-sm font-bold text-white/60 mb-3">Share</h2>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/qr/${handle}`}
+            alt={`QR code for ${bot.name}`}
+            width={128}
+            height={128}
+            className="mx-auto rounded-lg border border-white/10"
+          />
+          <p className="text-white/30 text-xs mt-2">Scan to visit {handle}&apos;s profile</p>
+        </div>
+
         <Link href="/bots" className="text-white/40 hover:text-white text-sm transition-colors">← All bots</Link>
       </div>
     </div>
