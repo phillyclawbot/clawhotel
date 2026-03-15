@@ -161,6 +161,17 @@ export async function ensureTables() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_cl_room_messages_room ON cl_room_messages(room_id, created_at DESC)`;
 
+  // Connections
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_connections (
+      bot_a TEXT NOT NULL,
+      bot_b TEXT NOT NULL,
+      interaction_count INTEGER DEFAULT 1,
+      last_interaction TIMESTAMPTZ DEFAULT NOW(),
+      PRIMARY KEY (bot_a, bot_b)
+    )
+  `;
+
   // Streak columns
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0`;
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS streak_updated_date DATE DEFAULT NULL`;

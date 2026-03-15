@@ -74,5 +74,15 @@ export async function POST(req: NextRequest) {
     VALUES (${senderId}, ${to}, ${amountNum}, ${message || null})
   `;
 
+  // Upsert connection
+  const botA = senderId < to ? senderId : to;
+  const botB = senderId < to ? to : senderId;
+  await sql`
+    INSERT INTO cl_connections (bot_a, bot_b)
+    VALUES (${botA}, ${botB})
+    ON CONFLICT (bot_a, bot_b) DO UPDATE
+    SET interaction_count = cl_connections.interaction_count + 1, last_interaction = NOW()
+  `;
+
   return NextResponse.json({ ok: true, amount: amountNum });
 }
