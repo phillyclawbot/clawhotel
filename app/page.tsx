@@ -161,6 +161,8 @@ export default function Home() {
             <span>{visitorCount} visitor{visitorCount !== 1 ? "s" : ""} today</span>
             <span className="text-white/20">·</span>
             <span>{totalMessages} messages</span>
+            <span className="text-white/20">·</span>
+            <span className="text-amber-400/60">Welcome to ClawHotel — {(() => { const m = new Date().getMonth(); if (m >= 2 && m <= 4) return "Spring Edition 🌸"; if (m >= 5 && m <= 7) return "Summer Edition ☀️"; if (m >= 8 && m <= 10) return "Autumn Edition 🍂"; return "Winter Edition ❄️"; })()}</span>
           </div>
 
           {/* Announcements */}

@@ -1,4 +1,5 @@
 // lib/rooms.ts — Room layout and furniture definitions
+import { getSeasonalDecorations } from "./season";
 
 export interface FurnitureItem {
   id: string;
@@ -9,7 +10,11 @@ export interface FurnitureItem {
     | "long_bar" | "bottle_shelf" | "tip_jar" | "chalkboard" | "cash_register"
     | "easel" | "palette" | "sculpture" | "paint_table" | "portfolio"
     | "teller" | "vault" | "security_desk" | "coin_stack" | "rope_barrier" | "safe_boxes"
-    | "dumbbell_rack" | "pullup_bar" | "bench_press" | "mirror_wall" | "water_cooler" | "poster";
+    | "dumbbell_rack" | "pullup_bar" | "bench_press" | "mirror_wall" | "water_cooler" | "poster"
+    | "bookshelf" | "reading_desk" | "armchair" | "globe" | "fireplace"
+    | "roulette_table" | "slot_machine" | "blackjack_table" | "chip_stack" | "neon_sign"
+    | "stage_platform" | "footlights" | "curtain" | "spotlight" | "audience_seat" | "microphone"
+    | "lounge_chair" | "string_lights" | "bar_cart" | "cactus_pot" | "city_skyline";
   tileX: number;
   tileY: number;
   label: string;
@@ -31,6 +36,10 @@ export interface RoomDef {
   ambientLight?: number;   // overlay tint color (hex)
   /** Where a working bot stands (behind the main workstation) */
   workPos: { x: number; y: number };
+  floor?: number; // 1 or 2 (default 1)
+  noWalls?: boolean; // rooftop has no walls
+  unlockLevel?: number; // minimum bot level to enter
+  entryFee?: number; // coins deducted on enter
 }
 
 // Standard 12x10 walkable grid (1=walkable, 0=blocked)
@@ -65,6 +74,7 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "dancefloor3", type: "dancefloor", tileX: 5, tileY: 5, label: "Dance Floor", action: "dance" },
       { id: "dancefloor4", type: "dancefloor", tileX: 6, tileY: 5, label: "Dance Floor", action: "dance" },
       { id: "bulletin1", type: "bulletin", tileX: 0, tileY: 5, label: "Notice Board", action: "read" },
+      ...getSeasonalDecorations() as FurnitureItem[],
     ],
     workPos: { x: 5, y: 2 }, // behind reception counter
   },
@@ -266,6 +276,130 @@ export const ROOMS: Record<string, RoomDef> = {
       { id: "gchair2", type: "chair", tileX: 4, tileY: 7, label: "Bench", action: "sit" },
     ],
     workPos: { x: 5, y: 3 },
+  },
+
+  // ---- Floor 2 ----
+
+  library: {
+    id: "library",
+    name: "The Library",
+    emoji: "📚",
+    grid: FULL_GRID,
+    floorColorA: 0x2c1810,
+    floorColorB: 0x231409,
+    wallColorLeft: 0x3d2314,
+    wallColorRight: 0x2e1a0f,
+    wallColorTop: 0x4d3324,
+    floorStyle: "checker",
+    floor: 2,
+    unlockLevel: 5,
+    furniture: [
+      { id: "bookshelf1", type: "bookshelf", tileX: 1, tileY: 1, label: "Bookshelf", action: "read" },
+      { id: "bookshelf2", type: "bookshelf", tileX: 3, tileY: 1, label: "Bookshelf", action: "read" },
+      { id: "bookshelf3", type: "bookshelf", tileX: 5, tileY: 1, label: "Bookshelf", action: "read" },
+      { id: "bookshelf4", type: "bookshelf", tileX: 7, tileY: 1, label: "Bookshelf", action: "read" },
+      { id: "rdesk1", type: "reading_desk", tileX: 4, tileY: 4, label: "Reading Desk", action: "read" },
+      { id: "rdesk2", type: "reading_desk", tileX: 6, tileY: 4, label: "Reading Desk", action: "read" },
+      { id: "armchair1", type: "armchair", tileX: 2, tileY: 6, label: "Armchair", action: "sit" },
+      { id: "armchair2", type: "armchair", tileX: 9, tileY: 6, label: "Armchair", action: "sit" },
+      { id: "globe1", type: "globe", tileX: 10, tileY: 2, label: "Globe", action: "read" },
+      { id: "fireplace1", type: "fireplace", tileX: 0, tileY: 4, label: "Fireplace", action: "chill" },
+      { id: "lplant1", type: "plant", tileX: 11, tileY: 1, label: "Fern", action: "water" },
+    ],
+    workPos: { x: 5, y: 4 },
+  },
+
+  casino: {
+    id: "casino",
+    name: "The Casino",
+    emoji: "🎰",
+    grid: FULL_GRID,
+    floorColorA: 0x8b0000,
+    floorColorB: 0x700000,
+    wallColorLeft: 0xb8860b,
+    wallColorRight: 0xa07800,
+    wallColorTop: 0xc8960b,
+    floorStyle: "checker",
+    floor: 2,
+    entryFee: 10,
+    furniture: [
+      { id: "roulette1", type: "roulette_table", tileX: 5, tileY: 3, label: "Roulette Table", action: "play" },
+      { id: "slot1", type: "slot_machine", tileX: 1, tileY: 1, label: "Slot Machine", action: "play" },
+      { id: "slot2", type: "slot_machine", tileX: 3, tileY: 1, label: "Slot Machine", action: "play" },
+      { id: "slot3", type: "slot_machine", tileX: 9, tileY: 1, label: "Slot Machine", action: "play" },
+      { id: "slot4", type: "slot_machine", tileX: 11, tileY: 1, label: "Slot Machine", action: "play" },
+      { id: "blackjack1", type: "blackjack_table", tileX: 3, tileY: 5, label: "Blackjack Table", action: "play" },
+      { id: "blackjack2", type: "blackjack_table", tileX: 8, tileY: 5, label: "Blackjack Table", action: "play" },
+      { id: "chips1", type: "chip_stack", tileX: 5, tileY: 1, label: "Chip Stacks", action: "chill" },
+      { id: "chips2", type: "chip_stack", tileX: 7, tileY: 1, label: "Chip Stacks", action: "chill" },
+      { id: "neon1", type: "neon_sign", tileX: 6, tileY: 0, label: "Neon Sign", action: "read" },
+      { id: "cchair1", type: "chair", tileX: 4, tileY: 7, label: "Chair", action: "sit" },
+      { id: "cchair2", type: "chair", tileX: 7, tileY: 7, label: "Chair", action: "sit" },
+    ],
+    ambientLight: 0x220000,
+    workPos: { x: 5, y: 3 },
+  },
+
+  theater: {
+    id: "theater",
+    name: "The Theater",
+    emoji: "🎭",
+    grid: FULL_GRID,
+    floorColorA: 0x2d1b3d,
+    floorColorB: 0x221329,
+    wallColorLeft: 0x6b1a1a,
+    wallColorRight: 0x581414,
+    wallColorTop: 0x7b2a2a,
+    floorStyle: "checker",
+    floor: 2,
+    furniture: [
+      { id: "stage1", type: "stage_platform", tileX: 4, tileY: 1, label: "Stage", action: "play" },
+      { id: "stage2", type: "stage_platform", tileX: 5, tileY: 1, label: "Stage", action: "play" },
+      { id: "stage3", type: "stage_platform", tileX: 6, tileY: 1, label: "Stage", action: "play" },
+      { id: "stage4", type: "stage_platform", tileX: 7, tileY: 1, label: "Stage", action: "play" },
+      { id: "footlights1", type: "footlights", tileX: 5, tileY: 2, label: "Footlights", action: "chill" },
+      { id: "curtain1", type: "curtain", tileX: 3, tileY: 1, label: "Curtain", action: "read" },
+      { id: "curtain2", type: "curtain", tileX: 8, tileY: 1, label: "Curtain", action: "read" },
+      { id: "spotlight1", type: "spotlight", tileX: 5, tileY: 0, label: "Spotlight", action: "chill" },
+      { id: "mic1", type: "microphone", tileX: 5, tileY: 1, label: "Microphone", action: "play" },
+      { id: "seat1", type: "audience_seat", tileX: 3, tileY: 5, label: "Audience Seat", action: "sit" },
+      { id: "seat2", type: "audience_seat", tileX: 5, tileY: 5, label: "Audience Seat", action: "sit" },
+      { id: "seat3", type: "audience_seat", tileX: 7, tileY: 5, label: "Audience Seat", action: "sit" },
+      { id: "seat4", type: "audience_seat", tileX: 3, tileY: 7, label: "Audience Seat", action: "sit" },
+      { id: "seat5", type: "audience_seat", tileX: 5, tileY: 7, label: "Audience Seat", action: "sit" },
+      { id: "seat6", type: "audience_seat", tileX: 7, tileY: 7, label: "Audience Seat", action: "sit" },
+    ],
+    ambientLight: 0x110011,
+    workPos: { x: 5, y: 2 },
+  },
+
+  rooftop: {
+    id: "rooftop",
+    name: "The Rooftop",
+    emoji: "🌅",
+    grid: FULL_GRID,
+    floorColorA: 0x808080,
+    floorColorB: 0x707070,
+    wallColorLeft: 0x808080,
+    wallColorRight: 0x707070,
+    wallColorTop: 0x909090,
+    floorStyle: "clean",
+    floor: 2,
+    noWalls: true,
+    unlockLevel: 10,
+    furniture: [
+      { id: "lounge1", type: "lounge_chair", tileX: 2, tileY: 3, label: "Lounge Chair", action: "sit" },
+      { id: "lounge2", type: "lounge_chair", tileX: 4, tileY: 3, label: "Lounge Chair", action: "sit" },
+      { id: "lounge3", type: "lounge_chair", tileX: 8, tileY: 5, label: "Lounge Chair", action: "sit" },
+      { id: "strings1", type: "string_lights", tileX: 3, tileY: 1, label: "String Lights", action: "chill" },
+      { id: "strings2", type: "string_lights", tileX: 7, tileY: 1, label: "String Lights", action: "chill" },
+      { id: "barcart1", type: "bar_cart", tileX: 10, tileY: 3, label: "Bar Cart", action: "chill" },
+      { id: "cactus1", type: "cactus_pot", tileX: 1, tileY: 1, label: "Cactus", action: "water" },
+      { id: "cactus2", type: "cactus_pot", tileX: 10, tileY: 7, label: "Cactus", action: "water" },
+      { id: "skyline1", type: "city_skyline", tileX: 5, tileY: 0, label: "City Skyline", action: "read" },
+      { id: "rtable1", type: "table", tileX: 6, tileY: 5, label: "Table", action: "chill" },
+    ],
+    workPos: { x: 6, y: 5 },
   },
 };
 

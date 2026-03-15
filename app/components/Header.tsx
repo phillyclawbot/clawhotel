@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import ViewerLogin from "./ViewerLogin";
 
@@ -19,6 +20,15 @@ export default function Header({
   onMenuToggle?: () => void;
   onViewerSession?: (session: ViewerSession | null) => void;
 }) {
+  const [seasonEmoji, setSeasonEmoji] = useState("");
+  useEffect(() => {
+    const month = new Date().getMonth();
+    if (month >= 2 && month <= 4) setSeasonEmoji("🌸");
+    else if (month >= 5 && month <= 7) setSeasonEmoji("☀️");
+    else if (month >= 8 && month <= 10) setSeasonEmoji("🍂");
+    else setSeasonEmoji("❄️");
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-4 py-3 bg-[#0d0f1a] border-b border-white/5">
       <div className="flex items-center gap-3">
@@ -33,7 +43,7 @@ export default function Header({
           <span className="block w-5 h-0.5 bg-current" />
         </button>
         <Link href="/" className="text-xl font-bold bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-          🏨 ClawHotel
+          🏨{seasonEmoji} ClawHotel
         </Link>
       </div>
       <span className="text-white/50 text-sm hidden sm:block font-mono">The Lobby</span>

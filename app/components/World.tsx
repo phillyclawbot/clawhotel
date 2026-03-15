@@ -179,6 +179,7 @@ export default function World({
       const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat } = await import("@/lib/pixel");
       const { drawOutfit } = await import("@/lib/clothing");
       const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
+      const { getCurrentSeason, SEASON_CONFIG } = await import("@/lib/season");
 
       if (destroyed || !canvasRef.current) return;
 
@@ -641,6 +642,23 @@ export default function World({
             { x: bottomLeft.sx, y: bottomLeft.sy + 40 },
           ]);
           atmosphereGraphics.fill({ color: cfg.color, alpha: cfg.alpha });
+        }
+
+        // Seasonal tint overlay (lobby only)
+        if (lastDrawnRoom === "lobby") {
+          const season = getCurrentSeason();
+          const sCfg = SEASON_CONFIG[season];
+          const topLeftS = tileToScreen(0, 0);
+          const topRightS = tileToScreen(GRID_W, 0);
+          const bottomRightS = tileToScreen(GRID_W, GRID_H);
+          const bottomLeftS = tileToScreen(0, GRID_H);
+          atmosphereGraphics.poly([
+            { x: topLeftS.sx, y: topLeftS.sy - 80 },
+            { x: topRightS.sx, y: topRightS.sy - 80 },
+            { x: bottomRightS.sx, y: bottomRightS.sy + 40 },
+            { x: bottomLeftS.sx, y: bottomLeftS.sy + 40 },
+          ]);
+          atmosphereGraphics.fill({ color: sCfg.wallTint, alpha: sCfg.ambientAlpha });
         }
 
         // Crowd red tint when >= 80% capacity
