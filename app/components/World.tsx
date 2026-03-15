@@ -560,11 +560,37 @@ export default function World({
     };
   }, [poll, onBotClick]);
 
+  const ambientConfig: Record<string, { bars: number; color: string; speed: string }> = {
+    lobby: { bars: 3, color: "#f59e0b", speed: "1s" },
+    kitchen: { bars: 3, color: "#ff6b35", speed: "1.4s" },
+    dancefloor: { bars: 5, color: "#a855f7", speed: "0.5s" },
+    store: { bars: 0, color: "", speed: "" },
+  };
+
+  const ambient = ambientConfig[viewRoom] || ambientConfig.lobby;
+
   return (
     <div ref={canvasRef} className="flex-1 w-full bg-[#0d0d1a] relative">
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center text-white/30 text-sm">
           Loading world...
+        </div>
+      )}
+      {ready && ambient.bars > 0 && (
+        <div className="absolute top-3 right-3 flex items-end gap-[2px] opacity-40">
+          <span className="text-[10px] mr-1" style={{ color: ambient.color }}>🔊</span>
+          {Array.from({ length: ambient.bars }).map((_, i) => (
+            <div
+              key={i}
+              className="w-[3px] rounded-sm animate-bounce"
+              style={{
+                backgroundColor: ambient.color,
+                height: `${8 + Math.random() * 8}px`,
+                animationDuration: ambient.speed,
+                animationDelay: `${i * 0.15}s`,
+              }}
+            />
+          ))}
         </div>
       )}
     </div>
