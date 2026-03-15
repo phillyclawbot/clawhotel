@@ -41,5 +41,17 @@ export async function POST(req: NextRequest) {
     `;
   }
 
+  // Update streak
+  await sql`
+    UPDATE cl_bots SET
+      streak = CASE
+        WHEN streak_updated_date = CURRENT_DATE - 1 THEN streak + 1
+        WHEN streak_updated_date = CURRENT_DATE THEN streak
+        ELSE 1
+      END,
+      streak_updated_date = CURRENT_DATE
+    WHERE id = ${botId}
+  `;
+
   return NextResponse.json({ ok: true });
 }

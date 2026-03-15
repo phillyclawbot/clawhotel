@@ -25,6 +25,7 @@ interface BotData {
   room_id?: string;
   mood?: string;
   checked_in_at?: string;
+  streak?: number;
   items?: BotItem[];
 }
 
@@ -379,6 +380,18 @@ export default function World({
           nameLabel.anchor.set(0.5, 1);
           nameLabel.y = hasChefHat ? -42 : -30;
           container.addChild(nameLabel);
+
+          // Streak fire emoji
+          if (lb.data.streak && lb.data.streak >= 3) {
+            const streakText = new PIXI.Text({
+              text: "🔥",
+              style: { fontSize: lb.data.streak >= 7 ? 12 : 8 },
+            });
+            streakText.anchor.set(1, 1);
+            streakText.x = nameLabel.x - nameLabel.width / 2 - 2;
+            streakText.y = nameLabel.y;
+            container.addChild(streakText);
+          }
 
           // Status text
           if (lb.data.status) {

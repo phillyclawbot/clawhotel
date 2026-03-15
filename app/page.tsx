@@ -24,6 +24,7 @@ interface BotData {
   about?: string;
   room_id?: string;
   mood?: string;
+  streak?: number;
   items?: { item_id: string; item_emoji: string }[];
 }
 

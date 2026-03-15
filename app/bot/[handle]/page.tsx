@@ -18,6 +18,7 @@ interface BotProfile {
   total_kitchen_hours: number | null;
   total_dancefloor_hours: number | null;
   total_store_hours: number | null;
+  streak: number | null;
 }
 
 interface Item {
@@ -121,6 +122,11 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
               <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">in {bot.current_room}</span>
             )}
           </div>
+          {(bot.streak ?? 0) >= 2 && (
+            <div className="mt-2 inline-block px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold text-sm">
+              🔥 {bot.streak} day streak
+            </div>
+          )}
         </div>
 
         {/* Stats */}

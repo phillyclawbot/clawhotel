@@ -15,6 +15,7 @@ interface Bot {
   speech_at?: string;
   room_id?: string;
   mood?: string;
+  streak?: number;
   items?: { item_id: string; item_emoji: string }[];
 }
 
@@ -73,6 +74,12 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
             }}
           >
             {bot.mood}
+          </span>
+        )}
+
+        {bot.streak !== undefined && bot.streak >= 2 && (
+          <span className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit bg-orange-500/20 text-orange-400">
+            🔥 {bot.streak} day streak
           </span>
         )}
 
