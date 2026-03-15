@@ -34,17 +34,20 @@ function FloorTiles({ room, rows, cols }: { room: RoomDef; rows: number; cols: n
 
   const count = rows * cols;
 
-  // Set instance matrices and colors
-  useMemo(() => {
+  // Set instance matrices and colors after mount
+  useFrame(() => {
     if (!meshRef.current) return;
     const mesh = meshRef.current;
-    for (let i = 0; i < count; i++) {
-      mesh.setMatrixAt(i, matrices[i]);
-      mesh.setColorAt(i, colors[i]);
+    if (!mesh.userData.initialized) {
+      for (let i = 0; i < count; i++) {
+        mesh.setMatrixAt(i, matrices[i]);
+        mesh.setColorAt(i, colors[i]);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.userData.initialized = true;
     }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [matrices, colors, count]);
+  });
 
   // For disco floor, animate colors
   useFrame((state) => {

@@ -144,10 +144,10 @@ export default function World3D({
       >
         <OrthographicCamera
           makeDefault
-          position={[10, 10, 10]}
-          zoom={40}
+          position={[15, 15, 15]}
+          zoom={55}
           near={0.1}
-          far={100}
+          far={200}
         />
 
         <fog attach="fog" args={["#0a0b1a", 15, 30]} />
