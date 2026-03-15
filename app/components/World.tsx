@@ -39,6 +39,7 @@ interface BotData {
   level?: number;
   prestige_count?: number;
   pet?: { pet_type: string; pet_name: string } | null;
+  active_title?: string | null;
 }
 
 interface Message {
@@ -75,6 +76,10 @@ const ROOM_EMOJI: Record<string, string> = {
   studio: "🎨",
   bank: "🏦",
   gym: "🏋️",
+  library: "📚",
+  casino: "🎰",
+  theater: "🎭",
+  rooftop: "🌅",
 };
 
 export default function World({
@@ -176,10 +181,11 @@ export default function World({
 
     (async () => {
       const PIXI = await import("pixi.js");
-      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat } = await import("@/lib/pixel");
+      const { drawHabboBot, drawFurniture, drawRoomFloor, drawRoomWalls, drawChefHat, drawRooftopSky } = await import("@/lib/pixel");
       const { drawOutfit } = await import("@/lib/clothing");
       const { ROOMS, furnitureEmoji } = await import("@/lib/rooms");
       const { getCurrentSeason, SEASON_CONFIG } = await import("@/lib/season");
+      const { TITLES } = await import("@/lib/titles");
 
       if (destroyed || !canvasRef.current) return;
 
@@ -257,7 +263,11 @@ export default function World({
         const room = ROOMS[roomId] || ROOMS.lobby;
 
         wallsGraphics.clear();
-        drawRoomWalls(wallsGraphics, room, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen);
+        if (room.noWalls) {
+          drawRooftopSky(wallsGraphics, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen, currentTimeOfDay);
+        } else {
+          drawRoomWalls(wallsGraphics, room, GRID_W, GRID_H, TILE_W, TILE_H, tileToScreen);
+        }
 
         lastDrawnRoom = roomId;
       }
@@ -447,6 +457,24 @@ export default function World({
           const hasHat = hasChefHat || !!lb.data.outfit?.hat;
           nameLabel.y = hasHat ? -42 : -30;
           container.addChild(nameLabel);
+
+          // Title label above name
+          if (lb.data.active_title && TITLES[lb.data.active_title]) {
+            const titleDef = TITLES[lb.data.active_title];
+            const titleLabel = new PIXI.Text({
+              text: titleDef.text,
+              style: {
+                fontSize: 7,
+                fill: titleDef.color,
+                fontFamily: "monospace",
+                fontWeight: "bold",
+                dropShadow: { color: 0x000000, distance: 1, alpha: 0.8 },
+              },
+            });
+            titleLabel.anchor.set(0.5, 1);
+            titleLabel.y = nameLabel.y - 10;
+            container.addChild(titleLabel);
+          }
 
           // Level badge
           if (lb.data.level && lb.data.level > 1) {
@@ -709,6 +737,10 @@ export default function World({
     studio: { bars: 2, color: "#EC4899", speed: "1.6s" },
     bank: { bars: 0, color: "", speed: "" },
     gym: { bars: 4, color: "#ef4444", speed: "0.8s" },
+    library: { bars: 0, color: "", speed: "" },
+    casino: { bars: 3, color: "#ffd700", speed: "0.6s" },
+    theater: { bars: 2, color: "#ff4444", speed: "1.4s" },
+    rooftop: { bars: 0, color: "", speed: "" },
   };
 
   const ambient = ambientConfig[viewRoom] || ambientConfig.lobby;

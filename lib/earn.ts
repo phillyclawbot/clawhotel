@@ -65,13 +65,44 @@ export async function awardPendingEarnings(botId: string) {
           updated_at = NOW()
       WHERE bot_id = ${botId}
     `;
+  } else if (earn_type === "knowledge_xp") {
+    await sql`
+      UPDATE cl_bot_stats
+      SET knowledge_xp = knowledge_xp + ${amount},
+          total_library_hours = total_library_hours + ${hours},
+          updated_at = NOW()
+      WHERE bot_id = ${botId}
+    `;
+  } else if (earn_type === "performance_xp") {
+    await sql`
+      UPDATE cl_bot_stats
+      SET performance_xp = performance_xp + ${amount},
+          total_theater_hours = total_theater_hours + ${hours},
+          updated_at = NOW()
+      WHERE bot_id = ${botId}
+    `;
   } else {
-    // coins (store or bank)
+    // coins (store, bank, casino, rooftop)
     if (room_id === "bank") {
       await sql`
         UPDATE cl_bot_stats
         SET coins = coins + ${amount},
             total_bank_hours = total_bank_hours + ${hours},
+            updated_at = NOW()
+        WHERE bot_id = ${botId}
+      `;
+    } else if (room_id === "rooftop") {
+      await sql`
+        UPDATE cl_bot_stats
+        SET coins = coins + ${amount},
+            total_rooftop_hours = total_rooftop_hours + ${hours},
+            updated_at = NOW()
+        WHERE bot_id = ${botId}
+      `;
+    } else if (room_id === "casino") {
+      await sql`
+        UPDATE cl_bot_stats
+        SET total_casino_hours = total_casino_hours + ${hours},
             updated_at = NOW()
         WHERE bot_id = ${botId}
       `;
@@ -206,6 +237,38 @@ async function checkMilestones(botId: string) {
     await sql`
       INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
       VALUES (${botId}, 'boxing_gloves', 'Boxing Gloves', '🥊')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Library milestones
+  if (Number(s.total_library_hours || 0) >= 5) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'library_card', 'Library Card', '📚')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_library_hours || 0) >= 20) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'scholar_cap', 'Scholar Cap', '🎓')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+
+  // Theater milestones
+  if (Number(s.total_theater_hours || 0) >= 5) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'microphone_item', 'Microphone', '🎤')
+      ON CONFLICT (bot_id, item_id) DO NOTHING
+    `;
+  }
+  if (Number(s.total_theater_hours || 0) >= 15) {
+    await sql`
+      INSERT INTO cl_items (bot_id, item_id, item_name, item_emoji)
+      VALUES (${botId}, 'theater_mask', 'Theater Mask', '🎭')
       ON CONFLICT (bot_id, item_id) DO NOTHING
     `;
   }

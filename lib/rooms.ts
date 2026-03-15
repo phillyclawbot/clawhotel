@@ -454,6 +454,31 @@ export const furnitureEmoji: Record<string, string> = {
   mirror_wall: "🪞",
   water_cooler: "💧",
   poster: "📃",
+  // Library
+  bookshelf: "📚",
+  reading_desk: "📖",
+  armchair: "🛋️",
+  globe: "🌍",
+  fireplace: "🔥",
+  // Casino
+  roulette_table: "🎰",
+  slot_machine: "🎰",
+  blackjack_table: "🃏",
+  chip_stack: "🪙",
+  neon_sign: "💡",
+  // Theater
+  stage_platform: "🎭",
+  footlights: "💡",
+  curtain: "🎭",
+  spotlight: "🔦",
+  audience_seat: "💺",
+  microphone: "🎤",
+  // Rooftop
+  lounge_chair: "🛋️",
+  string_lights: "✨",
+  bar_cart: "🍸",
+  cactus_pot: "🌵",
+  city_skyline: "🏙️",
 };
 
 // Room zone definitions (kept for backward compat with API)

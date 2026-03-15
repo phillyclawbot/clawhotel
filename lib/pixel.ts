@@ -223,6 +223,31 @@ export function drawFurniture(
     case "mirror_wall": drawMirrorWall(g, ox, oy); break;
     case "water_cooler": drawWaterCooler(g, ox, oy); break;
     case "poster": drawPoster(g, ox, oy); break;
+    // Library
+    case "bookshelf": drawBookshelf(g, ox, oy); break;
+    case "reading_desk": drawReadingDesk(g, ox, oy); break;
+    case "armchair": drawArmchair(g, ox, oy); break;
+    case "globe": drawGlobe(g, ox, oy, frameCount); break;
+    case "fireplace": drawFireplace(g, ox, oy, frameCount); break;
+    // Casino
+    case "roulette_table": drawRouletteTable(g, ox, oy, frameCount); break;
+    case "slot_machine": drawSlotMachine(g, ox, oy, frameCount); break;
+    case "blackjack_table": drawBlackjackTable(g, ox, oy); break;
+    case "chip_stack": drawChipStack(g, ox, oy); break;
+    case "neon_sign": drawNeonSign(g, ox, oy, frameCount); break;
+    // Theater
+    case "stage_platform": drawStagePlatform(g, ox, oy); break;
+    case "footlights": drawFootlights(g, ox, oy, frameCount); break;
+    case "curtain": drawCurtain(g, ox, oy); break;
+    case "spotlight": drawSpotlight(g, ox, oy, frameCount); break;
+    case "audience_seat": drawAudienceSeat(g, ox, oy); break;
+    case "microphone": drawMicrophone(g, ox, oy); break;
+    // Rooftop
+    case "lounge_chair": drawLoungeChair(g, ox, oy); break;
+    case "string_lights": drawStringLights(g, ox, oy, frameCount); break;
+    case "bar_cart": drawBarCart(g, ox, oy); break;
+    case "cactus_pot": drawCactusPot(g, ox, oy); break;
+    case "city_skyline": drawCitySkyline(g, ox, oy); break;
   }
 }
 
@@ -1295,6 +1320,498 @@ function drawPoster(g: Graphics, ox: number, oy: number) {
   // Thumbtack
   g.circle(ox, oy - 36, 2);
   g.fill(0xff4444);
+}
+
+// ---- Library furniture ----
+
+function drawBookshelf(g: Graphics, ox: number, oy: number) {
+  // Tall wooden shelf
+  g.rect(ox - 14, oy - 50, 28, 50);
+  g.fill(0x5c3317);
+  g.rect(ox - 14, oy - 2, 28, 4);
+  g.fill(0x3d2010);
+  // Shelves
+  for (let i = 0; i < 4; i++) {
+    g.rect(ox - 12, oy - 46 + i * 12, 24, 2);
+    g.fill(0x6b4020);
+  }
+  // Book spines (colored horizontal stripes)
+  const bookColors = [0xcc3333, 0x3366cc, 0x339933, 0xcc9933, 0x9933cc, 0xcc6633];
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      const c = bookColors[(i * 4 + j) % bookColors.length];
+      g.rect(ox - 10 + j * 6, oy - 44 + i * 12, 5, 9);
+      g.fill(c);
+    }
+  }
+}
+
+function drawReadingDesk(g: Graphics, ox: number, oy: number) {
+  // Desk surface
+  g.rect(ox - 18, oy - 14, 36, 4);
+  g.fill(0x8b6914);
+  g.rect(ox - 18, oy - 14, 36, 1);
+  g.fill(0xa07920);
+  // Desk body
+  g.rect(ox - 18, oy - 10, 36, 12);
+  g.fill(0x6b4f14);
+  // Legs
+  g.rect(ox - 16, oy, 3, 4);
+  g.fill(0x5a3e10);
+  g.rect(ox + 13, oy, 3, 4);
+  g.fill(0x5a3e10);
+  // Warm lamp glow
+  g.circle(ox + 10, oy - 22, 6);
+  g.fill({ color: 0xffdd44, alpha: 0.25 });
+  // Lamp base
+  g.rect(ox + 9, oy - 17, 3, 3);
+  g.fill(0x8b6914);
+  g.rect(ox + 7, oy - 24, 7, 5);
+  g.fill(0xffdd88);
+  // Open book
+  g.rect(ox - 8, oy - 18, 12, 4);
+  g.fill(0xfffff0);
+  g.rect(ox - 2, oy - 18, 1, 4);
+  g.fill(0xccccaa);
+}
+
+function drawArmchair(g: Graphics, ox: number, oy: number) {
+  // Seat cushion
+  g.rect(ox - 10, oy - 10, 20, 8);
+  g.fill(0x8b2222);
+  // Back
+  g.rect(ox - 10, oy - 22, 20, 12);
+  g.fill(0x7a1e1e);
+  // Arms
+  g.rect(ox - 13, oy - 16, 3, 14);
+  g.fill(0x6b1a1a);
+  g.rect(ox + 10, oy - 16, 3, 14);
+  g.fill(0x6b1a1a);
+  // Front legs
+  g.rect(ox - 8, oy - 2, 3, 4);
+  g.fill(0x5c3317);
+  g.rect(ox + 5, oy - 2, 3, 4);
+  g.fill(0x5c3317);
+}
+
+function drawGlobe(g: Graphics, ox: number, oy: number, frame: number) {
+  // Stand
+  g.rect(ox - 1, oy - 12, 2, 12);
+  g.fill(0x8b6914);
+  g.rect(ox - 6, oy - 2, 12, 3);
+  g.fill(0x6b4f14);
+  // Globe sphere
+  g.circle(ox, oy - 22, 10);
+  g.fill(0x2266aa);
+  // Continents (rotating effect)
+  const offset = Math.floor(frame / 20) % 10;
+  g.rect(ox - 6 + offset % 5, oy - 28, 6, 4);
+  g.fill(0x44aa44);
+  g.rect(ox + 2 - offset % 3, oy - 20, 4, 6);
+  g.fill(0x44aa44);
+  // Axis ring
+  g.ellipse(ox, oy - 22, 12, 4);
+  g.stroke({ width: 1, color: 0x8b6914 });
+}
+
+function drawFireplace(g: Graphics, ox: number, oy: number, frame: number) {
+  // Stone frame
+  g.rect(ox - 16, oy - 40, 32, 40);
+  g.fill(0x4a4a4a);
+  g.rect(ox - 18, oy - 42, 36, 4);
+  g.fill(0x5a5a5a);
+  // Mantle
+  g.rect(ox - 20, oy - 44, 40, 3);
+  g.fill(0x8b6914);
+  // Firebox opening
+  g.rect(ox - 10, oy - 30, 20, 28);
+  g.fill(0x1a1a1a);
+  // Animated fire
+  const flicker1 = Math.sin(frame * 0.2) * 2;
+  const flicker2 = Math.cos(frame * 0.15) * 2;
+  g.rect(ox - 6 + flicker1, oy - 20, 5, 16);
+  g.fill({ color: 0xff4400, alpha: 0.9 });
+  g.rect(ox + 1 + flicker2, oy - 18, 5, 14);
+  g.fill({ color: 0xff6600, alpha: 0.85 });
+  g.rect(ox - 3, oy - 14 + flicker1, 6, 10);
+  g.fill({ color: 0xffaa00, alpha: 0.8 });
+  // Embers
+  g.rect(ox - 4, oy - 4, 8, 2);
+  g.fill(0xff2200);
+  // Warm glow
+  g.circle(ox, oy - 16, 20);
+  g.fill({ color: 0xff6600, alpha: 0.06 });
+}
+
+// ---- Casino furniture ----
+
+function drawRouletteTable(g: Graphics, ox: number, oy: number, frame: number) {
+  // Table base
+  g.ellipse(ox, oy - 6, 24, 12);
+  g.fill(0x006600);
+  // Rim
+  g.ellipse(ox, oy - 6, 24, 12);
+  g.stroke({ width: 2, color: 0x8b6914 });
+  // Inner wheel
+  g.circle(ox, oy - 6, 8);
+  g.fill(0x003300);
+  // Spinning indicator
+  const angle = (frame * 0.05) % (Math.PI * 2);
+  const bx = ox + Math.cos(angle) * 6;
+  const by = oy - 6 + Math.sin(angle) * 3;
+  g.circle(bx, by, 2);
+  g.fill(0xffffff);
+  // Numbers hint
+  g.rect(ox + 12, oy - 10, 8, 3);
+  g.fill(0xff0000);
+  g.rect(ox - 20, oy - 10, 8, 3);
+  g.fill(0x000000);
+  // Legs
+  g.rect(ox - 2, oy + 4, 4, 4);
+  g.fill(0x5c3317);
+}
+
+function drawSlotMachine(g: Graphics, ox: number, oy: number, frame: number) {
+  // Cabinet body
+  g.rect(ox - 12, oy - 40, 24, 40);
+  g.fill(0xcc0000);
+  g.rect(ox - 12, oy - 2, 24, 4);
+  g.fill(0x990000);
+  // Top decorative cap
+  g.rect(ox - 14, oy - 44, 28, 6);
+  g.fill(0xff2222);
+  // Screen
+  g.rect(ox - 8, oy - 32, 16, 12);
+  g.fill(0x111111);
+  // 3 spinning reels
+  const symbols = [0xffff00, 0xff00ff, 0x00ffff];
+  for (let i = 0; i < 3; i++) {
+    const ci = (i + Math.floor(frame / 12)) % symbols.length;
+    g.rect(ox - 6 + i * 5, oy - 30, 4, 8);
+    g.fill({ color: symbols[ci], alpha: 0.9 });
+  }
+  // Lever
+  g.rect(ox + 12, oy - 28, 3, 14);
+  g.fill(0x666666);
+  g.circle(ox + 13.5, oy - 30, 3);
+  g.fill(0xff4444);
+  // Coin tray
+  g.rect(ox - 8, oy - 16, 16, 4);
+  g.fill(0xffd700);
+}
+
+function drawBlackjackTable(g: Graphics, ox: number, oy: number) {
+  // Green felt table (half-moon shape as rect)
+  g.rect(ox - 22, oy - 10, 44, 12);
+  g.fill(0x006600);
+  g.rect(ox - 22, oy - 10, 44, 1);
+  g.fill(0x008800);
+  // Front edge
+  g.rect(ox - 22, oy, 44, 4);
+  g.fill(0x004400);
+  // Dealer position marking
+  g.ellipse(ox, oy - 6, 16, 5);
+  g.stroke({ width: 1, color: 0xffd700 });
+  // Card spots
+  g.rect(ox - 14, oy - 8, 6, 4);
+  g.fill(0xffffff);
+  g.rect(ox - 4, oy - 8, 6, 4);
+  g.fill(0xffffff);
+  g.rect(ox + 6, oy - 8, 6, 4);
+  g.fill(0xffffff);
+  // Table legs
+  g.rect(ox - 18, oy + 2, 3, 4);
+  g.fill(0x5c3317);
+  g.rect(ox + 15, oy + 2, 3, 4);
+  g.fill(0x5c3317);
+}
+
+function drawChipStack(g: Graphics, ox: number, oy: number) {
+  const colors = [0xff0000, 0x0000ff, 0x00cc00, 0xffd700];
+  for (let i = 0; i < 4; i++) {
+    g.ellipse(ox + i * 4 - 6, oy - 4 - i * 3, 6, 3);
+    g.fill(colors[i]);
+    g.ellipse(ox + i * 4 - 6, oy - 4 - i * 3, 6, 3);
+    g.stroke({ width: 0.5, color: 0xffffff });
+  }
+}
+
+function drawNeonSign(g: Graphics, ox: number, oy: number, frame: number) {
+  const pulse = 0.6 + Math.sin(frame * 0.1) * 0.4;
+  // Sign backing
+  g.rect(ox - 20, oy - 30, 40, 16);
+  g.fill(0x111111);
+  // Neon border
+  g.rect(ox - 20, oy - 30, 40, 16);
+  g.stroke({ width: 2, color: 0xff00ff, alpha: pulse });
+  // "CASINO" text effect (bright rects)
+  g.rect(ox - 14, oy - 26, 28, 8);
+  g.fill({ color: 0xff00ff, alpha: pulse * 0.3 });
+  // Star decorations
+  g.circle(ox - 16, oy - 22, 2);
+  g.fill({ color: 0xffff00, alpha: pulse });
+  g.circle(ox + 16, oy - 22, 2);
+  g.fill({ color: 0xffff00, alpha: pulse });
+}
+
+// ---- Theater furniture ----
+
+function drawStagePlatform(g: Graphics, ox: number, oy: number) {
+  // Raised platform
+  g.rect(ox - 16, oy - 8, 32, 4);
+  g.fill(0x8b6914);
+  g.rect(ox - 16, oy - 8, 32, 1);
+  g.fill(0xa07920);
+  // Front face
+  g.rect(ox - 16, oy - 4, 32, 6);
+  g.fill(0x6b4f14);
+  // Stage floor boards
+  for (let i = 0; i < 4; i++) {
+    g.rect(ox - 14 + i * 8, oy - 7, 7, 2);
+    g.fill(0x9b7924);
+  }
+}
+
+function drawFootlights(g: Graphics, ox: number, oy: number, frame: number) {
+  const colors = [0xffff44, 0xffaa22, 0xffff44, 0xff8822, 0xffff44];
+  for (let i = 0; i < 5; i++) {
+    const flicker = 0.7 + Math.sin(frame * 0.15 + i) * 0.3;
+    g.circle(ox - 12 + i * 6, oy - 2, 2.5);
+    g.fill({ color: colors[i], alpha: flicker });
+    // Glow
+    g.circle(ox - 12 + i * 6, oy - 2, 6);
+    g.fill({ color: colors[i], alpha: flicker * 0.1 });
+  }
+}
+
+function drawCurtain(g: Graphics, ox: number, oy: number) {
+  // Tall heavy curtain
+  g.rect(ox - 6, oy - 60, 12, 60);
+  g.fill(0x8b0000);
+  // Folds (vertical stripes)
+  g.rect(ox - 4, oy - 58, 2, 56);
+  g.fill(0x6b0000);
+  g.rect(ox + 2, oy - 58, 2, 56);
+  g.fill(0x6b0000);
+  // Top valance
+  g.rect(ox - 8, oy - 62, 16, 4);
+  g.fill(0xffd700);
+  // Tassel
+  g.rect(ox - 1, oy - 30, 2, 8);
+  g.fill(0xffd700);
+  g.circle(ox, oy - 22, 2);
+  g.fill(0xffd700);
+}
+
+function drawSpotlight(g: Graphics, ox: number, oy: number, frame: number) {
+  const pulse = 0.6 + Math.sin(frame * 0.08) * 0.4;
+  // Fixture
+  g.rect(ox - 4, oy - 50, 8, 6);
+  g.fill(0x333333);
+  // Light cone (triangle effect)
+  g.poly([
+    { x: ox - 4, y: oy - 44 },
+    { x: ox + 4, y: oy - 44 },
+    { x: ox + 16, y: oy },
+    { x: ox - 16, y: oy },
+  ]);
+  g.fill({ color: 0xffffcc, alpha: pulse * 0.12 });
+  // Bright center
+  g.circle(ox, oy - 46, 3);
+  g.fill({ color: 0xffffff, alpha: pulse });
+}
+
+function drawAudienceSeat(g: Graphics, ox: number, oy: number) {
+  // Seat
+  g.rect(ox - 6, oy - 6, 12, 4);
+  g.fill(0x4a1a1a);
+  // Back
+  g.rect(ox - 6, oy - 14, 12, 8);
+  g.fill(0x3a1010);
+  // Legs
+  g.rect(ox - 5, oy - 2, 2, 4);
+  g.fill(0x333333);
+  g.rect(ox + 3, oy - 2, 2, 4);
+  g.fill(0x333333);
+}
+
+function drawMicrophone(g: Graphics, ox: number, oy: number) {
+  // Stand
+  g.rect(ox - 1, oy - 30, 2, 28);
+  g.fill(0x666666);
+  // Base
+  g.ellipse(ox, oy, 6, 3);
+  g.fill(0x444444);
+  // Mic head
+  g.circle(ox, oy - 32, 4);
+  g.fill(0x888888);
+  g.circle(ox, oy - 32, 3);
+  g.fill(0x666666);
+  // Grid pattern
+  g.rect(ox - 2, oy - 34, 1, 4);
+  g.fill(0x555555);
+  g.rect(ox + 1, oy - 34, 1, 4);
+  g.fill(0x555555);
+}
+
+// ---- Rooftop furniture ----
+
+function drawLoungeChair(g: Graphics, ox: number, oy: number) {
+  // Angled flat surface
+  g.poly([
+    { x: ox - 14, y: oy - 6 },
+    { x: ox + 14, y: oy - 6 },
+    { x: ox + 14, y: oy - 2 },
+    { x: ox - 14, y: oy - 2 },
+  ]);
+  g.fill(0xdddddd);
+  // Slightly raised head portion
+  g.rect(ox - 14, oy - 12, 8, 6);
+  g.fill(0xcccccc);
+  // Cushion
+  g.rect(ox - 12, oy - 8, 24, 3);
+  g.fill(0x4488cc);
+  // Legs
+  g.rect(ox - 12, oy - 2, 2, 4);
+  g.fill(0x888888);
+  g.rect(ox + 10, oy - 2, 2, 4);
+  g.fill(0x888888);
+}
+
+function drawStringLights(g: Graphics, ox: number, oy: number, frame: number) {
+  // Horizontal string
+  g.rect(ox - 20, oy - 36, 40, 1);
+  g.fill(0x444444);
+  // Warm yellow dots along string
+  for (let i = 0; i < 8; i++) {
+    const flicker = 0.6 + Math.sin(frame * 0.1 + i * 1.2) * 0.4;
+    const lx = ox - 18 + i * 5;
+    g.circle(lx, oy - 34, 2);
+    g.fill({ color: 0xffdd66, alpha: flicker });
+    // Warm glow
+    g.circle(lx, oy - 34, 5);
+    g.fill({ color: 0xffdd66, alpha: flicker * 0.1 });
+  }
+}
+
+function drawBarCart(g: Graphics, ox: number, oy: number) {
+  // Cart frame
+  g.rect(ox - 12, oy - 18, 24, 4);
+  g.fill(0x888888);
+  g.rect(ox - 12, oy - 8, 24, 4);
+  g.fill(0x888888);
+  // Side rails
+  g.rect(ox - 12, oy - 18, 2, 18);
+  g.fill(0x777777);
+  g.rect(ox + 10, oy - 18, 2, 18);
+  g.fill(0x777777);
+  // Wheels
+  g.circle(ox - 10, oy + 1, 2);
+  g.fill(0x444444);
+  g.circle(ox + 10, oy + 1, 2);
+  g.fill(0x444444);
+  // Bottles on top
+  g.rect(ox - 6, oy - 24, 4, 6);
+  g.fill(0x44aa44);
+  g.rect(ox + 2, oy - 22, 4, 4);
+  g.fill(0xaa4444);
+  // Glasses on lower shelf
+  g.rect(ox - 4, oy - 12, 3, 3);
+  g.fill({ color: 0xffffff, alpha: 0.6 });
+  g.rect(ox + 2, oy - 12, 3, 3);
+  g.fill({ color: 0xffffff, alpha: 0.6 });
+}
+
+function drawCactusPot(g: Graphics, ox: number, oy: number) {
+  // Pot
+  g.rect(ox - 6, oy - 8, 12, 8);
+  g.fill(0xcc6633);
+  g.rect(ox - 7, oy - 10, 14, 3);
+  g.fill(0xdd7744);
+  // Cactus body
+  g.rect(ox - 3, oy - 24, 6, 16);
+  g.fill(0x228b22);
+  // Arms
+  g.rect(ox - 8, oy - 20, 5, 4);
+  g.fill(0x228b22);
+  g.rect(ox - 8, oy - 26, 4, 10);
+  g.fill(0x1e7b1e);
+  g.rect(ox + 3, oy - 18, 5, 4);
+  g.fill(0x228b22);
+  g.rect(ox + 4, oy - 22, 4, 8);
+  g.fill(0x1e7b1e);
+  // Flower on top
+  g.circle(ox, oy - 26, 3);
+  g.fill(0xff69b4);
+}
+
+function drawCitySkyline(g: Graphics, ox: number, oy: number) {
+  // Buildings silhouette along bottom wall
+  const buildings = [
+    { x: -20, w: 8, h: 30 },
+    { x: -10, w: 6, h: 45 },
+    { x: -3, w: 10, h: 35 },
+    { x: 8, w: 7, h: 50 },
+    { x: 16, w: 6, h: 25 },
+    { x: 23, w: 8, h: 40 },
+  ];
+  for (const b of buildings) {
+    g.rect(ox + b.x, oy - b.h, b.w, b.h);
+    g.fill(0x1a1a2e);
+    // Windows (tiny yellow dots)
+    for (let wy = 0; wy < b.h - 4; wy += 6) {
+      for (let wx = 1; wx < b.w - 1; wx += 3) {
+        g.rect(ox + b.x + wx, oy - b.h + 2 + wy, 1.5, 2);
+        g.fill({ color: 0xffdd66, alpha: Math.random() > 0.3 ? 0.7 : 0.2 });
+      }
+    }
+  }
+}
+
+// ---- Rooftop sky background ----
+
+export function drawRooftopSky(
+  g: Graphics,
+  gridW: number,
+  gridH: number,
+  tileW: number,
+  tileH: number,
+  tileToScreenFn: (x: number, y: number) => { sx: number; sy: number },
+  timeOfDay: "dawn" | "day" | "dusk" | "night"
+) {
+  const skyColors: Record<string, number[]> = {
+    night: [0x0a0a1a, 0x0d0d2a, 0x101030, 0x141440, 0x181850],
+    dawn: [0x1a0a2a, 0x4a2040, 0x8a3050, 0xcc6040, 0xFF8C00],
+    day: [0x3366aa, 0x4488cc, 0x55aadd, 0x77ccee, 0x87CEEB],
+    dusk: [0x1a0a1a, 0x3a1a2a, 0x6a2a3a, 0xaa4a3a, 0xFF6B35],
+  };
+  const colors = skyColors[timeOfDay];
+
+  // Get boundary points
+  const topLeft = tileToScreenFn(0, 0);
+  const topRight = tileToScreenFn(gridW, 0);
+  const bottomLeft = tileToScreenFn(0, gridH);
+
+  const wallHeight = 80;
+  const startY = topLeft.sy - wallHeight - 3;
+  const endY = topLeft.sy + tileH / 2;
+  const bandH = (endY - startY) / colors.length;
+
+  for (let i = 0; i < colors.length; i++) {
+    const y = startY + i * bandH;
+    g.rect(topRight.sx - tileW, y, bottomLeft.sx - topRight.sx + tileW * 3, bandH + 1);
+    g.fill(colors[i]);
+  }
+
+  // Stars at night
+  if (timeOfDay === "night") {
+    for (let i = 0; i < 20; i++) {
+      const sx = topRight.sx - tileW + Math.random() * (bottomLeft.sx - topRight.sx + tileW * 3);
+      const sy2 = startY + Math.random() * (endY - startY) * 0.6;
+      g.circle(sx, sy2, 0.8 + Math.random() * 0.5);
+      g.fill({ color: 0xffffff, alpha: 0.5 + Math.random() * 0.5 });
+    }
+  }
 }
 
 // ---- Room-level drawing functions ----

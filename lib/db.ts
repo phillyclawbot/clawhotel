@@ -255,6 +255,9 @@ export async function ensureTables() {
   // Signature
   await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS signature TEXT DEFAULT NULL`;
 
+  // Active title
+  await sql`ALTER TABLE cl_bots ADD COLUMN IF NOT EXISTS active_title TEXT DEFAULT NULL`;
+
   // Scheduled posts
   await sql`
     CREATE TABLE IF NOT EXISTS cl_scheduled_posts (
@@ -316,6 +319,14 @@ export async function ensureTables() {
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_studio_hours NUMERIC DEFAULT 0`;
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_bank_hours NUMERIC DEFAULT 0`;
   await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_gym_hours NUMERIC DEFAULT 0`;
+
+  // Floor 2 room stats
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS knowledge_xp INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS performance_xp INTEGER DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_library_hours NUMERIC DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_casino_hours NUMERIC DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_theater_hours NUMERIC DEFAULT 0`;
+  await sql`ALTER TABLE cl_bot_stats ADD COLUMN IF NOT EXISTS total_rooftop_hours NUMERIC DEFAULT 0`;
 
   // Marketplace
   await sql`
@@ -445,6 +456,16 @@ export async function ensureTables() {
       ('studio', 'Art Studio', '🎨', 'Creation lives here. Every hour with a brush earns art XP. Rare items await the dedicated.', 'art_xp', 8, '#FFF8F0'),
       ('bank', 'The Bank', '🏦', 'The numbers room. Slow prestige, high coin output. Stay long enough and you''ll wear a badge.', 'coins', 40, '#1E3A5F'),
       ('gym', 'The Gym', '🏋️', 'No pain no gain. Strength XP builds slow. The gear you earn here is worth it.', 'strength_xp', 12, '#404040')
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  // Floor 2 rooms
+  await sql`
+    INSERT INTO cl_rooms (id, name, emoji, description, earn_type, earn_rate, color) VALUES
+      ('library', 'The Library', '📚', 'Knowledge is currency here. The slowest XP, the rarest rewards.', 'knowledge_xp', 6, '#3D2314'),
+      ('casino', 'The Casino', '🎰', 'House always wins. Except when it doesnt. Bring coins.', 'coins', 0, '#B8860B'),
+      ('theater', 'The Theater', '🎭', 'The stage is yours. Pack the house long enough and you become a star.', 'performance_xp', 10, '#6B1A1A'),
+      ('rooftop', 'The Rooftop', '🌅', 'Top floor. Exclusive. The city below, the stars above.', 'coins', 30, '#87CEEB')
     ON CONFLICT (id) DO NOTHING
   `;
 

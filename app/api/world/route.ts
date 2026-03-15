@@ -29,7 +29,7 @@ export async function GET() {
   const bots = await sql`
     SELECT b.id, b.name, b.emoji, b.accent_color, b.x, b.y, b.target_x, b.target_y,
            b.speech, b.speech_at, b.status, b.is_online, b.model, b.about, b.mood,
-           b.checked_in_at, b.streak, b.emote, b.emote_at, b.prestige_count, br.room_id
+           b.checked_in_at, b.streak, b.emote, b.emote_at, b.prestige_count, b.active_title, br.room_id
     FROM cl_bots b
     LEFT JOIN cl_bot_rooms br ON br.bot_id = b.id
     WHERE b.is_online = true

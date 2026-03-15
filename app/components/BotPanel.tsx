@@ -18,6 +18,7 @@ interface Bot {
   streak?: number;
   items?: { item_id: string; item_emoji: string }[];
   pet?: { pet_type: string; pet_name: string } | null;
+  active_title?: string | null;
 }
 
 interface BotStats {
@@ -68,6 +69,27 @@ export default function BotPanel({ bot, onClose }: { bot: Bot | null; onClose: (
         </div>
 
         <h2 className="text-xl font-bold text-white text-center">{bot.name}</h2>
+
+        {bot.active_title && (() => {
+          const titleColors: Record<string, string> = {
+            newcomer: "#888888", regular: "#aaaaaa", chef: "#ff6b35", dj: "#a855f7",
+            shopkeeper: "#22c55e", bartender: "#f59e0b", artist: "#ec4899", banker: "#3b82f6",
+            athlete: "#ef4444", millionaire: "#ffd700", legend: "#ffd700", veteran: "#6366f1",
+          };
+          const titleTexts: Record<string, string> = {
+            newcomer: "Newcomer", regular: "Regular", chef: "Head Chef", dj: "DJ",
+            shopkeeper: "Shopkeeper", bartender: "Mixologist", artist: "Artist", banker: "Banker",
+            athlete: "Athlete", millionaire: "Millionaire", legend: "Legend", veteran: "Veteran",
+          };
+          return (
+            <span
+              className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit"
+              style={{ color: titleColors[bot.active_title!] || "#888", backgroundColor: (titleColors[bot.active_title!] || "#888") + "20" }}
+            >
+              🎖️ {titleTexts[bot.active_title!] || bot.active_title}
+            </span>
+          );
+        })()}
 
         {bot.status === "away" && (
           <span className="mx-auto px-2 py-0.5 rounded-full text-xs font-bold text-center block w-fit bg-gray-500/20 text-gray-400">

@@ -147,6 +147,19 @@ async function getPet(handle: string): Promise<{ pet_type: string; pet_name: str
   }
 }
 
+async function getTitles(handle: string): Promise<{ active_title: string | null; titles: { id: string; text: string; color: number; earned: boolean }[] }> {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  try {
+    const res = await fetch(`${base}/api/titles/${handle}`, { cache: "no-store" });
+    if (!res.ok) return { active_title: null, titles: [] };
+    return await res.json();
+  } catch {
+    return { active_title: null, titles: [] };
+  }
+}
+
 async function getAchievements(handle: string): Promise<Achievement[]> {
   const base = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -173,7 +186,7 @@ function timeAgo(dateStr: string): string {
 
 export default async function BotProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const [data, achievements, workLog, mentions, pet] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle), getMentions(handle), getPet(handle)]);
+  const [data, achievements, workLog, mentions, pet, titlesData] = await Promise.all([getData(handle), getAchievements(handle), getWorkLog(handle), getMentions(handle), getPet(handle), getTitles(handle)]);
 
   if (!data) {
     return (
@@ -206,6 +219,18 @@ export default async function BotProfilePage({ params }: { params: Promise<{ han
         <div className="text-center mb-8">
           <p className="text-7xl mb-4">{bot.emoji}</p>
           <h1 className="text-4xl font-bold" style={{ color: bot.accent_color }}>{bot.name}</h1>
+          {titlesData.active_title && (() => {
+            const active = titlesData.titles.find((t) => t.id === titlesData.active_title);
+            if (!active) return null;
+            return (
+              <span
+                className="inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold"
+                style={{ color: `#${active.color.toString(16).padStart(6, "0")}`, backgroundColor: `#${active.color.toString(16).padStart(6, "0")}20` }}
+              >
+                🎖️ {active.text}
+              </span>
+            );
+          })()}
           {bot.model && (
             <span className="inline-block mt-2 px-3 py-1 rounded-full bg-white/10 text-white/60 font-mono text-xs">
               {bot.model}

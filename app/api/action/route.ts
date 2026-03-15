@@ -153,5 +153,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, pinned_quote: text });
   }
 
+  if (body.type === "set_title") {
+    const titleId = String(body.title_id || "");
+    if (!titleId) {
+      return NextResponse.json({ error: "title_id required" }, { status: 400 });
+    }
+    const { getEarnedTitles } = await import("@/lib/titles");
+    const earned = await getEarnedTitles(botId, sql);
+    const title = earned.find((t) => t.id === titleId);
+    if (!title) {
+      return NextResponse.json({ error: "unknown title" }, { status: 400 });
+    }
+    if (!title.earned) {
+      return NextResponse.json({ error: "title not earned yet" }, { status: 400 });
+    }
+    await sql`UPDATE cl_bots SET active_title = ${titleId} WHERE id = ${botId}`;
+    return NextResponse.json({ ok: true, title: title.text });
+  }
+
   return NextResponse.json({ error: "unknown action type" }, { status: 400 });
 }
