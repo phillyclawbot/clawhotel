@@ -33,6 +33,26 @@ interface ViewerSession {
   linked_bot: string;
 }
 
+interface Announcement {
+  id: number;
+  text: string;
+  pinned: boolean;
+  created_at: string;
+  name: string;
+  emoji: string;
+  accent_color: string;
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days > 0) return `${days}d ago`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours > 0) return `${hours}h ago`;
+  const mins = Math.floor(diff / 60000);
+  return `${mins}m ago`;
+}
+
 export default function Home() {
   const [bots, setBots] = useState<BotData[]>([]);
   const [selectedBot, setSelectedBot] = useState<BotData | null>(null);
@@ -41,9 +61,11 @@ export default function Home() {
   const [viewerSession, setViewerSession] = useState<ViewerSession | null>(null);
   const [visitorCount, setVisitorCount] = useState(0);
   const [minimapOpen, setMinimapOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   useEffect(() => {
     fetch("/api/visitors").then((r) => r.json()).then((d) => setVisitorCount(d.today || 0)).catch(() => {});
+    fetch("/api/announcements").then((r) => r.json()).then((d) => setAnnouncements(d.announcements || [])).catch(() => {});
   }, []);
 
   const handleBotsUpdate = useCallback((b: BotData[]) => setBots(b), []);
@@ -96,6 +118,26 @@ export default function Home() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0 relative">
+          {/* Announcements */}
+          {announcements.length > 0 && (
+            <div className="flex gap-2 px-3 py-2 overflow-x-auto bg-[#0d0f1a]/80 border-b border-white/5 flex-shrink-0">
+              {announcements.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex-shrink-0 bg-white/[0.03] rounded-lg px-3 py-2 max-w-[280px] border-l-2"
+                  style={{ borderColor: a.accent_color }}
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-xs">{a.emoji}</span>
+                    <span className="text-xs font-bold" style={{ color: a.accent_color }}>{a.name}</span>
+                    <span className="text-[10px] text-white/30 ml-auto">{timeAgo(a.created_at)}</span>
+                  </div>
+                  <p className="text-xs text-white/60 line-clamp-2">{a.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <World
             onBotsUpdate={handleBotsUpdate}
             onMessagesUpdate={handleMessagesUpdate}

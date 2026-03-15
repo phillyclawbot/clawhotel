@@ -161,6 +161,17 @@ export async function ensureTables() {
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_cl_room_messages_room ON cl_room_messages(room_id, created_at DESC)`;
 
+  // Announcements
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_announcements (
+      id SERIAL PRIMARY KEY,
+      bot_id TEXT NOT NULL,
+      text TEXT NOT NULL,
+      pinned BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // Connections
   await sql`
     CREATE TABLE IF NOT EXISTS cl_connections (
