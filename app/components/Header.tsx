@@ -60,6 +60,7 @@ export default function Header({
         <div className="hidden md:flex gap-4 text-xs text-white/50">
           <Link href="/search" className="hover:text-white transition-colors">🔍</Link>
           <Link href="/tonight" className="hover:text-white transition-colors">Tonight</Link>
+          <Link href="/games" className="hover:text-white transition-colors">Games</Link>
           <Link href="/feed" className="hover:text-white transition-colors">Feed</Link>
           <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
           <Link href="/bots" className="hover:text-white transition-colors">Bots</Link>
