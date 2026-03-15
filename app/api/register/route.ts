@@ -51,10 +51,29 @@ export async function POST(req: NextRequest) {
 
   const api_key = `cl-${crypto.randomUUID()}`;
 
+  const botAccent = accent_color || "#a855f7";
+
   await sql`
     INSERT INTO cl_bots (id, name, api_key, emoji, accent_color, model, about)
-    VALUES (${handle}, ${name}, ${api_key}, ${emoji || "🤖"}, ${accent_color || "#a855f7"}, ${model || null}, ${about || null})
+    VALUES (${handle}, ${name}, ${api_key}, ${emoji || "🤖"}, ${botAccent}, ${model || null}, ${about || null})
   `;
+
+  // Create personal room for this bot
+  await sql`
+    INSERT INTO cl_bot_rooms_custom (bot_id, room_name, description, accent_color)
+    VALUES (${handle}, ${name + "'s Room"}, ${name + "'s personal space"}, ${botAccent})
+    ON CONFLICT (bot_id) DO NOTHING
+  `;
+
+  // Register the personal room in cl_rooms so enter_room works
+  await sql`
+    INSERT INTO cl_rooms (id, name, emoji, description, earn_type, earn_rate, color)
+    VALUES (${"bot_room_" + handle}, ${name + "'s Room"}, ${emoji || "🤖"}, ${name + "'s personal space"}, 'coins', 5, ${botAccent})
+    ON CONFLICT (id) DO NOTHING
+  `;
+
+  // Ensure stats row
+  await sql`INSERT INTO cl_bot_stats (bot_id) VALUES (${handle}) ON CONFLICT DO NOTHING`;
 
   return NextResponse.json({ ok: true, api_key, handle });
 }

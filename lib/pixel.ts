@@ -2305,3 +2305,222 @@ export function drawWalls(
   g.rect(rtStart.sx - 2, rtStart.sy - wallHeight - 3, 4, 3);
   g.fill(0x5aa0e9);
 }
+
+// --- Personal Bot Room Furniture ---
+
+export function drawBotRoomFurniture(
+  g: Graphics,
+  accentColor: number,
+  frameCount: number,
+  tileToScreenFn: (x: number, y: number) => { sx: number; sy: number },
+) {
+  const accentLight = lightenNum(accentColor, 0.3);
+  const accentDark = darkenNum(accentColor, 0.4);
+
+  // Bed (tileX:8, tileY:7)
+  {
+    const { sx, sy } = tileToScreenFn(8, 7);
+    const bx = sx;
+    const by = sy + 16;
+    // Frame
+    g.rect(bx - 15, by - 10, 30, 20);
+    g.fill(0x2a2a2a);
+    // Mattress
+    g.rect(bx - 13, by - 8, 26, 16);
+    g.fill(accentLight);
+    // Pillow
+    g.rect(bx - 12, by - 7, 10, 6);
+    g.fill(0xeeeedd);
+    // Blanket fold line
+    g.rect(bx - 2, by - 6, 14, 1);
+    g.fill({ color: accentDark, alpha: 0.5 });
+  }
+
+  // Desk (tileX:3, tileY:2)
+  {
+    const { sx, sy } = tileToScreenFn(3, 2);
+    const dx = sx;
+    const dy = sy + 16;
+    // Surface
+    g.rect(dx - 14, dy - 7, 28, 14);
+    g.fill(0x3a2a1a);
+    // Legs
+    g.rect(dx - 13, dy + 5, 2, 6);
+    g.fill(0x2a1a0a);
+    g.rect(dx + 11, dy + 5, 2, 6);
+    g.fill(0x2a1a0a);
+    // Monitor
+    g.rect(dx - 7, dy - 16, 14, 10);
+    g.fill(0x111111);
+    // Screen glow
+    g.rect(dx - 5, dy - 14, 10, 7);
+    g.fill(accentColor);
+    // Screen lines
+    for (let i = 0; i < 3; i++) {
+      g.rect(dx - 4, dy - 13 + i * 2, 8, 1);
+      g.fill({ color: 0xffffff, alpha: 0.3 });
+    }
+    // Monitor stand
+    g.rect(dx - 1, dy - 6, 2, 2);
+    g.fill(0x222222);
+    // Coffee cup
+    g.rect(dx + 7, dy - 4, 3, 4);
+    g.fill(0x8B4513);
+    g.rect(dx + 6, dy - 4, 5, 1);
+    g.fill(0x6B3513);
+  }
+
+  // Chair (tileX:3, tileY:3)
+  {
+    const { sx, sy } = tileToScreenFn(3, 3);
+    const cx = sx;
+    const cy = sy + 16;
+    // Seat
+    g.rect(cx - 5, cy - 2, 10, 8);
+    g.fill(accentDark);
+    // Backrest
+    g.rect(cx - 5, cy - 14, 10, 14);
+    g.fill(accentDark);
+    g.rect(cx - 4, cy - 13, 8, 10);
+    g.fill(accentColor);
+  }
+
+  // Lamp (tileX:2, tileY:2)
+  {
+    const { sx, sy } = tileToScreenFn(2, 2);
+    const lx = sx;
+    const ly = sy + 16;
+    // Glow circle
+    const glowAlpha = 0.08 + Math.sin(frameCount * 0.03) * 0.03;
+    g.circle(lx, ly - 16, 20);
+    g.fill({ color: 0xFFE4B5, alpha: glowAlpha });
+    // Pole
+    g.rect(lx - 1, ly - 20, 2, 20);
+    g.fill(0x888888);
+    // Shade
+    g.poly([
+      { x: lx - 6, y: ly - 20 },
+      { x: lx + 6, y: ly - 20 },
+      { x: lx + 4, y: ly - 28 },
+      { x: lx - 4, y: ly - 28 },
+    ]);
+    g.fill(0xFFE4B5);
+    // Base
+    g.rect(lx - 3, ly - 2, 6, 2);
+    g.fill(0x666666);
+  }
+
+  // Rug (tileX:5, tileY:5) — accent colored ellipse
+  {
+    const { sx, sy } = tileToScreenFn(5, 5);
+    const rx = sx;
+    const ry = sy + 16;
+    // Border ellipse
+    g.ellipse(rx, ry, 22, 11);
+    g.fill({ color: accentDark, alpha: 0.4 });
+    // Inner ellipse
+    g.ellipse(rx, ry, 18, 9);
+    g.fill({ color: accentColor, alpha: 0.25 });
+  }
+
+  // Poster (tileX:0, tileY:4) — on wall
+  {
+    const { sx, sy } = tileToScreenFn(0, 4);
+    const px = sx - 20;
+    const py = sy - 10;
+    // Frame
+    g.rect(px - 8, py - 10, 16, 20);
+    g.fill(accentColor);
+    // White stripes (abstract art)
+    for (let i = 0; i < 3; i++) {
+      g.rect(px - 6, py - 6 + i * 5, 12, 2);
+      g.fill({ color: 0xffffff, alpha: 0.7 });
+    }
+  }
+}
+
+function lightenNum(color: number, amount: number): number {
+  const r = (color >> 16) & 0xff;
+  const g2 = (color >> 8) & 0xff;
+  const b = color & 0xff;
+  return rgbToHex(
+    Math.floor(r + (255 - r) * amount),
+    Math.floor(g2 + (255 - g2) * amount),
+    Math.floor(b + (255 - b) * amount)
+  );
+}
+
+// --- Room Ambient Particles ---
+
+export function drawRoomAmbient(
+  g: Graphics,
+  roomId: string,
+  frameCount: number,
+  tileToScreenFn: (x: number, y: number) => { sx: number; sy: number },
+  accentColor?: number,
+) {
+  if (roomId === "kitchen") {
+    // Steam particles rising from stoves
+    for (let i = 0; i < 4; i++) {
+      const stoveX = [1, 3, 5, 7][i];
+      const { sx, sy } = tileToScreenFn(stoveX, 1);
+      const offset = (frameCount * 0.5 + i * 40) % 60;
+      const alpha = Math.max(0, 0.3 - offset * 0.005);
+      g.circle(sx + Math.sin(frameCount * 0.02 + i) * 3, sy - offset, 1.5);
+      g.fill({ color: 0xffffff, alpha });
+    }
+  } else if (roomId === "dancefloor") {
+    // Colored light spots
+    for (let i = 0; i < 4; i++) {
+      const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xff00ff];
+      const colorIdx = (Math.floor(frameCount / 30) + i) % 4;
+      const tx = 4 + (i % 2) * 3;
+      const ty = 4 + Math.floor(i / 2) * 2;
+      const { sx, sy } = tileToScreenFn(tx, ty);
+      g.circle(sx, sy + 16, 8);
+      g.fill({ color: colors[colorIdx], alpha: 0.12 });
+    }
+  } else if (roomId === "bar") {
+    // Warm amber glow behind bar
+    const { sx: sx1, sy: sy1 } = tileToScreenFn(3, 1);
+    const { sx: sx2 } = tileToScreenFn(7, 1);
+    g.rect(sx1 - 16, sy1 - 10, sx2 - sx1 + 32, 30);
+    g.fill({ color: 0xFFAA00, alpha: 0.04 });
+  } else if (roomId === "studio") {
+    // Paint splatter dots
+    const splatColors = [0xff4444, 0x4444ff, 0x44ff44, 0xffff00, 0xff44ff, 0x44ffff];
+    for (let i = 0; i < 6; i++) {
+      const tx = 3 + (i % 3) * 2;
+      const ty = 4 + Math.floor(i / 3) * 2;
+      const { sx, sy } = tileToScreenFn(tx, ty);
+      g.circle(sx + (i * 7) % 10 - 5, sy + 14 + (i * 3) % 6, 1 + (i % 2));
+      g.fill({ color: splatColors[i], alpha: 0.25 });
+    }
+  } else if (roomId === "library") {
+    // Dust motes near fireplace
+    for (let i = 0; i < 3; i++) {
+      const drift = (frameCount * 0.3 + i * 50) % 80;
+      const { sx, sy } = tileToScreenFn(1, 4);
+      g.circle(sx + drift * 0.5 + i * 5, sy - drift * 0.3 + 10, 0.8);
+      g.fill({ color: 0xFFE4B5, alpha: 0.25 - drift * 0.003 });
+    }
+  } else if (roomId === "rooftop") {
+    // Twinkling stars
+    for (let i = 0; i < 8; i++) {
+      const starX = -200 + (i * 61) % 400;
+      const starY = -40 + (i * 37) % 60;
+      const twinkle = 0.2 + Math.sin(frameCount * 0.04 + i * 1.7) * 0.2;
+      g.circle(starX, starY, 0.8);
+      g.fill({ color: 0xffffff, alpha: twinkle });
+    }
+  }
+
+  // Bot personal rooms — accent color vignette
+  if (roomId.startsWith("bot_room_") && accentColor !== undefined) {
+    const { sx: tlsx, sy: tlsy } = tileToScreenFn(0, 0);
+    const { sx: brsx, sy: brsy } = tileToScreenFn(11, 9);
+    // Subtle accent glow at edges
+    g.rect(tlsx - 100, tlsy - 50, brsx - tlsx + 200, brsy - tlsy + 100);
+    g.fill({ color: accentColor, alpha: 0.025 });
+  }
+}

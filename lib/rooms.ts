@@ -441,6 +441,61 @@ export const ROOMS: Record<string, RoomDef> = {
   },
 };
 
+// --- Personal Bot Rooms ---
+
+export interface BotRoomCustom {
+  bot_id: string;
+  room_name: string;
+  description: string | null;
+  accent_color: string;
+}
+
+export function darkenColor(hex: number, factor: number): number {
+  const r = Math.floor(((hex >> 16) & 0xFF) * factor);
+  const g = Math.floor(((hex >> 8) & 0xFF) * factor);
+  const b = Math.floor((hex & 0xFF) * factor);
+  return (r << 16) | (g << 8) | b;
+}
+
+function getDefaultBotFurniture(): FurnitureItem[] {
+  return [
+    { id: "bed", type: "chair", tileX: 8, tileY: 7, label: "Bed", action: "sleep" },
+    { id: "desk", type: "table", tileX: 3, tileY: 2, label: "Desk", action: "work" },
+    { id: "chair_personal", type: "chair", tileX: 3, tileY: 3, label: "Chair", action: "sit" },
+    { id: "lamp", type: "plant", tileX: 2, tileY: 2, label: "Lamp", action: "toggle" },
+    { id: "rug", type: "dancefloor", tileX: 5, tileY: 5, label: "Rug", action: "chill" },
+    { id: "poster", type: "bulletin", tileX: 0, tileY: 4, label: "Poster", action: "read" },
+  ];
+}
+
+export function generateBotRoom(botId: string, roomData: BotRoomCustom, botEmoji: string): RoomDef {
+  const accent = parseInt(roomData.accent_color.replace("#", ""), 16);
+
+  const floorA = darkenColor(accent, 0.15);
+  const floorB = darkenColor(accent, 0.12);
+  const wallL = darkenColor(accent, 0.25);
+  const wallR = darkenColor(accent, 0.20);
+  const wallT = darkenColor(accent, 0.30);
+
+  return {
+    id: `bot_room_${botId}`,
+    name: roomData.room_name,
+    emoji: botEmoji,
+    grid: FULL_GRID,
+    floorColorA: floorA,
+    floorColorB: floorB,
+    wallColorLeft: wallL,
+    wallColorRight: wallR,
+    wallColorTop: wallT,
+    floorStyle: "checker",
+    furniture: getDefaultBotFurniture(),
+    workPos: { x: 5, y: 4 },
+    doorPos: { x: 0, y: 5 },
+    owner: botId,
+    description: roomData.description || `${botId}'s personal space`,
+  };
+}
+
 // Furniture emoji labels for tooltips
 export const furnitureEmoji: Record<string, string> = {
   arcade: "🎮",

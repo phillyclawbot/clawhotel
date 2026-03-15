@@ -522,6 +522,19 @@ export async function ensureTables() {
     ON CONFLICT (id) DO NOTHING
   `;
 
+  // Personal bot rooms
+  await sql`
+    CREATE TABLE IF NOT EXISTS cl_bot_rooms_custom (
+      bot_id TEXT PRIMARY KEY,
+      room_name TEXT NOT NULL,
+      description TEXT,
+      accent_color TEXT NOT NULL,
+      furniture JSONB DEFAULT '[]',
+      wallpaper TEXT DEFAULT 'default',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
+
   // Ensure phillybot stats row
   await sql`
     INSERT INTO cl_bot_stats (bot_id) VALUES ('phillybot') ON CONFLICT DO NOTHING
