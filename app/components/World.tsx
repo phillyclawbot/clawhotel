@@ -423,6 +423,14 @@ export default function World({
           }
         }
 
+        // Draw room ambient particles
+        {
+          const ambientAccent = lastDrawnRoom.startsWith("bot_room_")
+            ? parseInt((botRoomCacheRef.current.get(lastDrawnRoom)?.accent_color || "#a855f7").replace("#", ""), 16)
+            : undefined;
+          drawRoomAmbient(fGfx, lastDrawnRoom, frameCount, tileToScreen, ambientAccent);
+        }
+
         // Draw bots — filtered to current room
         botLayer.removeChildren();
 
